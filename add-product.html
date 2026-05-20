@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgriFlash — Publier un surplus</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="navbar-inner">
+        <div class="logo">
+          <a
+            href="index.html"
+            style="
+              text-decoration: none;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: inherit;
+            "
+          >
+            🌱 <span>AgriFlash</span>
+          </a>
+        </div>
+        <nav>
+          <a href="index.html">← Retour</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="form-section">
+      <div class="form-container">
+        <div class="form-header">
+          <h1>Publier un surplus</h1>
+          <p>
+            Remplissez ce formulaire en moins de 60 secondes pour connecter vos
+            produits aux acheteurs locaux.
+          </p>
+        </div>
+
+        <div id="success-msg" class="success-msg" style="display: none">
+          ✅ Votre surplus a été publié avec succès !
+          <br /><a href="index.html">← Voir tous les surplus</a>
+        </div>
+
+        <form id="form-surplus" class="form-card" novalidate>
+          <div class="form-group">
+            <label for="nom-produit">Nom du produit *</label>
+            <input
+              type="text"
+              id="nom-produit"
+              placeholder="Ex : Tomates, Ignames, Maïs..."
+              required
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="quantite">Quantité *</label>
+              <input
+                type="number"
+                id="quantite"
+                placeholder="Ex : 50"
+                min="1"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="unite">Unité *</label>
+              <select id="unite" required>
+                <option value="">-- Choisir --</option>
+                <option value="kg">kg</option>
+                <option value="tonnes">tonnes</option>
+                <option value="sacs">sacs</option>
+                <option value="caisses">caisses</option>
+                <option value="régimes">régimes</option>
+                <option value="unités">unités</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prix">Prix (FCFA) *</label>
+              <input
+                type="number"
+                id="prix"
+                placeholder="Ex : 5000"
+                min="0"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="prix-unite">Prix par</label>
+              <select id="prix-unite">
+                <option value="kg">kg</option>
+                <option value="sac">sac</option>
+                <option value="caisse">caisse</option>
+                <option value="unité">unité</option>
+                <option value="lot">lot entier</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="region">Région *</label>
+            <select id="region" required>
+              <option value="">-- Sélectionner --</option>
+              <option value="Lomé">Lomé</option>
+              <option value="Kara">Kara</option>
+              <option value="Atakpamé">Atakpamé</option>
+              <option value="Sokodé">Sokodé</option>
+              <option value="Dapaong">Dapaong</option>
+              <option value="Tsévié">Tsévié</option>
+              <option value="Kpalimé">Kpalimé</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="localisation">Localisation précise</label>
+            <input
+              type="text"
+              id="localisation"
+              placeholder="Ex : Marché d'Agoè, village Agou..."
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="urgence">Niveau d'urgence *</label>
+            <select id="urgence" required>
+              <option value="">-- Sélectionner --</option>
+              <option value="critique">🔴 Critique — moins de 24h</option>
+              <option value="urgent">🟠 Urgent — moins de 48h</option>
+              <option value="normal">🟢 Normal — quelques jours</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description (optionnel)</label>
+            <textarea
+              id="description"
+              rows="3"
+              placeholder="Qualité, variété, conditions de stockage..."
+            ></textarea>
+          </div>
+
+          <hr class="form-divider" />
+          <p class="form-section-label">Vos coordonnées</p>
+
+          <div class="form-group">
+            <label for="nom-vendeur">Nom / Prénom *</label>
+            <input
+              type="text"
+              id="nom-vendeur"
+              placeholder="Ex : Kofi Mensah"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="telephone">Numéro de téléphone *</label>
+            <input
+              type="tel"
+              id="telephone"
+              placeholder="Ex : +228 90 00 00 00"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="moyen-contact">Moyen de contact préféré</label>
+            <select id="moyen-contact">
+              <option value="Appel">Appel téléphonique</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Les deux">Appel ou WhatsApp</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-submit">
+            Publier mon surplus →
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>
+        AgriFlash 🌱 — TCC Hack & Defend 2026 | "Jeune togolais, code ta nation,
+        défends ton avenir."
+      </p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

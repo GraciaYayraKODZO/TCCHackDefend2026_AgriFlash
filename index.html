@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgriFlash 🌱 — Surplus agricoles au Togo</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="navbar">
+      <div class="navbar-inner">
+        <div class="logo">🌱 <span>AgriFlash</span></div>
+        <nav>
+          <a href="index.html" class="active">Accueil</a>
+          <a href="add-product.html" class="btn-publier"
+            >+ Publier un surplus</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content">
+        <span class="hero-badge">🇹🇬 Fait pour le Togo</span>
+        <h1>
+          Écoulez vos surplus<br /><span class="accent"
+            >avant qu'il soit trop tard</span
+          >
+        </h1>
+        <p>
+          AgriFlash connecte les producteurs togolais aux acheteurs locaux en
+          moins de 60 secondes.
+        </p>
+        <div class="hero-actions">
+          <a href="add-product.html" class="btn-primary">Publier un surplus</a>
+          <a href="#surplus" class="btn-secondary">Voir les disponibles</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="liste-section" id="surplus">
+      <div class="container">
+        <div class="liste-header">
+          <h2>Surplus disponibles</h2>
+          <div class="filtres">
+            <input type="text" id="search" placeholder="Rechercher..." />
+            <select id="filtre-region">
+              <option value="">Toutes les régions</option>
+              <option value="Lomé">Lomé</option>
+              <option value="Kara">Kara</option>
+              <option value="Atakpamé">Atakpamé</option>
+              <option value="Sokodé">Sokodé</option>
+            </select>
+            <select id="filtre-urgence">
+              <option value="">Toutes urgences</option>
+              <option value="critique">🔴 Critique</option>
+              <option value="urgent">🟠 Urgent</option>
+              <option value="normal">🟢 Normal</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-surplus" id="grid-surplus"></div>
+      </div>
+    </section>
+
+    <section class="how-section">
+      <div class="container">
+        <h2>Comment ça marche ?</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <h3>Publiez</h3>
+            <p>Le producteur publie son surplus en 60 secondes.</p>
+          </div>
+          <div class="step-arrow">→</div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <h3>Matching</h3>
+            <p>Les acheteurs locaux consultent et réservent.</p>
+          </div>
+          <div class="step-arrow">→</div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <h3>Contact</h3>
+            <p>Mise en relation directe. Zéro gaspillage.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>
+        AgriFlash 🌱 — TCC Hack & Defend 2026 | "Jeune togolais, code ta nation,
+        défends ton avenir."
+      </p>
+    </footer>
+
+    <div class="modal-overlay" id="modal" style="display: none">
+      <div class="modal">
+        <button class="modal-close" id="modal-close">✕</button>
+        <h3 id="modal-title"></h3>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
