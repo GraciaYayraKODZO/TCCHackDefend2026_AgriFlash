@@ -1,68 +1,33 @@
-// DONNÉES DE DÉMONSTRATION
+// DONNÉES DE DÉMONSTRATION — produits togolais réalistes
 const surplusData = [
   {
     id: 1,
-    produit: "Tomates fraîches",
+    emoji: "🍅",
+    produit: "Tomates mûres",
+    categorie: "legumes",
     quantite: "80 kg",
-    prix: "500 FCFA/kg",
+    prix: "450 FCFA/kg",
     region: "Lomé",
     localisation: "Marché d'Agoè",
     urgence: "critique",
+    idealPour: "Restaurants / Cantines",
     description:
-      "Tomates bien mûres, récoltées ce matin. À écouler absolument aujourd'hui.",
+      "Tomates bien mûres, récoltées ce matin. Idéales pour restaurants — prix négociable pour grosse quantité.",
     vendeur: "Koffi Amégah",
     telephone: "+228 90 00 11 22",
     contact: "WhatsApp",
   },
   {
     id: 2,
-    produit: "Ignames",
-    quantite: "3 sacs",
-    prix: "8 000 FCFA/sac",
-    region: "Kara",
-    localisation: "Village Pagouda",
-    urgence: "urgent",
-    description:
-      "Ignames de qualité supérieure. Disponibles pour enlèvement dès aujourd'hui.",
-    vendeur: "Afi Tchassim",
-    telephone: "+228 91 23 45 67",
-    contact: "Appel",
-  },
-  {
-    id: 3,
-    produit: "Maïs séché",
-    quantite: "120 kg",
-    prix: "200 FCFA/kg",
-    region: "Atakpamé",
-    localisation: "Marché central",
-    urgence: "normal",
-    description: "Maïs bien séché, prêt pour la transformation ou la revente.",
-    vendeur: "Edem Kpakpo",
-    telephone: "+228 93 44 55 66",
-    contact: "WhatsApp",
-  },
-  {
-    id: 4,
-    produit: "Bananes plantains",
-    quantite: "15 régimes",
-    prix: "2 500 FCFA/régime",
-    region: "Lomé",
-    localisation: "Quartier Bè",
-    urgence: "urgent",
-    description:
-      "Plantains à maturité idéale. Parfaits pour restaurants et cantines.",
-    vendeur: "Yawa Agbeko",
-    telephone: "+228 97 88 99 00",
-    contact: "WhatsApp",
-  },
-  {
-    id: 5,
+    emoji: "🌿",
     produit: "Gombos frais",
+    categorie: "legumes",
     quantite: "30 kg",
     prix: "300 FCFA/kg",
     region: "Sokodé",
     localisation: "Marché de Sokodé",
     urgence: "critique",
+    idealPour: "Cantines / Particuliers",
     description:
       "Gombos récoltés hier soir. Très frais, à récupérer rapidement.",
     vendeur: "Moussa Boukari",
@@ -70,28 +35,115 @@ const surplusData = [
     contact: "Appel",
   },
   {
+    id: 3,
+    emoji: "🌶️",
+    produit: "Piments frais",
+    categorie: "condiments",
+    quantite: "15 kg",
+    prix: "600 FCFA/kg",
+    region: "Atakpamé",
+    localisation: "Marché central",
+    urgence: "urgent",
+    idealPour: "Restaurants / Revendeurs",
+    description:
+      "Piments locaux bien fermes. Variété forte, production sans traitement chimique.",
+    vendeur: "Akua Mensah",
+    telephone: "+228 93 44 55 66",
+    contact: "WhatsApp",
+  },
+  {
+    id: 4,
+    emoji: "🌿",
+    produit: "Manioc frais",
+    categorie: "tubercules",
+    quantite: "5 sacs (50 kg)",
+    prix: "3 500 FCFA/sac",
+    region: "Kara",
+    localisation: "Village Pagouda",
+    urgence: "urgent",
+    idealPour: "Transformateurs / Marchés",
+    description:
+      "Manioc récolté ce matin — se dégrade rapidement. À transformer ou écouler dans 48h.",
+    vendeur: "Afi Tchassim",
+    telephone: "+228 91 23 45 67",
+    contact: "Appel",
+  },
+  {
+    id: 5,
+    emoji: "🍌",
+    produit: "Bananes plantains",
+    categorie: "fruits",
+    quantite: "15 régimes",
+    prix: "2 500 FCFA/régime",
+    region: "Lomé",
+    localisation: "Quartier Bè",
+    urgence: "urgent",
+    idealPour: "Restaurants / Cantines",
+    description:
+      "Plantains à maturité idéale. Parfaits pour restaurants et cantines scolaires.",
+    vendeur: "Yawa Agbeko",
+    telephone: "+228 97 88 99 00",
+    contact: "WhatsApp",
+  },
+  {
     id: 6,
-    produit: "Ananas",
-    quantite: "50 unités",
-    prix: "400 FCFA/unité",
+    emoji: "🥔",
+    produit: "Ignames",
+    categorie: "tubercules",
+    quantite: "3 sacs",
+    prix: "8 000 FCFA/sac",
     region: "Kara",
     localisation: "Ferme Kozah",
     urgence: "normal",
-    description:
-      "Ananas sucrés de la région de Kara. Production locale, sans traitement.",
+    idealPour: "Marchés / Particuliers",
+    description: "Ignames de qualité supérieure. Disponibles pour enlèvement.",
     vendeur: "Sadia Alassani",
     telephone: "+228 92 55 66 77",
     contact: "WhatsApp",
   },
+  {
+    id: 7,
+    emoji: "🥭",
+    produit: "Mangues",
+    categorie: "fruits",
+    quantite: "120 unités",
+    prix: "200 FCFA/unité",
+    region: "Atakpamé",
+    localisation: "Plantation Danyi",
+    urgence: "urgent",
+    idealPour: "Marchés / Revendeurs",
+    description:
+      "Mangues mûres, sucrées. Risque de pourriture si non écoulées sous 48h.",
+    vendeur: "Edem Kpakpo",
+    telephone: "+228 93 44 55 66",
+    contact: "WhatsApp",
+  },
+  {
+    id: 8,
+    emoji: "🌽",
+    produit: "Maïs séché",
+    categorie: "cereales",
+    quantite: "120 kg",
+    prix: "200 FCFA/kg",
+    region: "Atakpamé",
+    localisation: "Marché central",
+    urgence: "normal",
+    idealPour: "Transformateurs / Marchés",
+    description: "Maïs bien séché, prêt pour la transformation ou la revente.",
+    vendeur: "Kofi Mensah",
+    telephone: "+228 93 22 11 00",
+    contact: "WhatsApp",
+  },
 ];
 
-// AFFICHAGE DES CARTES
+// BADGE URGENCE
 function getBadgeLabel(urgence) {
   if (urgence === "critique") return "🔴 Critique — < 24h";
   if (urgence === "urgent") return "🟠 Urgent — < 48h";
   return "🟢 Normal";
 }
 
+// AFFICHAGE DES CARTES
 function afficherSurplus(liste) {
   const grid = document.getElementById("grid-surplus");
   if (!grid) return;
@@ -106,12 +158,14 @@ function afficherSurplus(liste) {
     .map(
       (item) => `
     <div class="card">
+      <div class="card-emoji">${item.emoji}</div>
       <div class="card-header">
         <span class="card-produit">${item.produit}</span>
         <span class="badge-urgence ${item.urgence}">${getBadgeLabel(item.urgence)}</span>
       </div>
       <p class="card-info">📦 ${item.quantite}</p>
       <p class="card-info">📍 ${item.localisation}, ${item.region}</p>
+      <p class="card-ideal">👥 ${item.idealPour}</p>
       <p class="card-prix">${item.prix}</p>
       <div class="card-footer">
         <span class="card-vendeur">👤 ${item.vendeur}</span>
@@ -128,6 +182,7 @@ function filtrer() {
   const search = document.getElementById("search")?.value.toLowerCase() || "";
   const region = document.getElementById("filtre-region")?.value || "";
   const urgence = document.getElementById("filtre-urgence")?.value || "";
+  const categorie = document.getElementById("filtre-categorie")?.value || "";
 
   const tous = JSON.parse(
     localStorage.getItem("agriflash-surplus") || "[]",
@@ -139,10 +194,19 @@ function filtrer() {
       item.region.toLowerCase().includes(search);
     const matchRegion = region === "" || item.region === region;
     const matchUrgence = urgence === "" || item.urgence === urgence;
-    return matchSearch && matchRegion && matchUrgence;
+    const matchCategorie = categorie === "" || item.categorie === categorie;
+    return matchSearch && matchRegion && matchUrgence && matchCategorie;
   });
 
   afficherSurplus(resultat);
+}
+
+function reinitialiserFiltres() {
+  document.getElementById("search").value = "";
+  document.getElementById("filtre-region").value = "";
+  document.getElementById("filtre-urgence").value = "";
+  document.getElementById("filtre-categorie").value = "";
+  filtrer();
 }
 
 // MODAL CONTACT
@@ -153,11 +217,13 @@ function ouvrirModal(id) {
   const item = tous.find((s) => s.id === id);
   if (!item) return;
 
-  document.getElementById("modal-title").textContent = item.produit;
+  document.getElementById("modal-title").textContent =
+    item.emoji + " " + item.produit;
   document.getElementById("modal-body").innerHTML = `
     <p class="modal-info">📦 <strong>Quantité :</strong> ${item.quantite}</p>
     <p class="modal-info">💰 <strong>Prix :</strong> ${item.prix}</p>
     <p class="modal-info">📍 <strong>Lieu :</strong> ${item.localisation}, ${item.region}</p>
+    <p class="modal-info">👥 <strong>Idéal pour :</strong> ${item.idealPour}</p>
     <p class="modal-info">📝 ${item.description}</p>
     <p class="modal-tel">📞 ${item.telephone}</p>
     <p class="modal-info" style="font-size:0.85rem; color:#888;">Contacter via : ${item.contact}</p>
@@ -183,7 +249,9 @@ function initFormulaire() {
 
     const nouveauSurplus = {
       id: Date.now(),
+      emoji: "📦",
       produit: document.getElementById("nom-produit").value,
+      categorie: document.getElementById("categorie").value,
       quantite:
         document.getElementById("quantite").value +
         " " +
@@ -197,6 +265,7 @@ function initFormulaire() {
         document.getElementById("localisation").value ||
         document.getElementById("region").value,
       urgence: document.getElementById("urgence").value,
+      idealPour: document.getElementById("ideal-pour").value,
       description:
         document.getElementById("description").value || "Aucune description.",
       vendeur: document.getElementById("nom-vendeur").value,
@@ -217,14 +286,18 @@ function initFormulaire() {
 
 // INITIALISATION
 document.addEventListener("DOMContentLoaded", function () {
-  // Événements filtres
   document.getElementById("search")?.addEventListener("input", filtrer);
   document.getElementById("filtre-region")?.addEventListener("change", filtrer);
   document
     .getElementById("filtre-urgence")
     ?.addEventListener("change", filtrer);
+  document
+    .getElementById("filtre-categorie")
+    ?.addEventListener("change", filtrer);
+  document
+    .getElementById("btn-reinit")
+    ?.addEventListener("click", reinitialiserFiltres);
 
-  // Fermer modal
   document
     .getElementById("modal-close")
     ?.addEventListener("click", fermerModal);
@@ -232,13 +305,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (e.target === this) fermerModal();
   });
 
-  // Affichage initial
   afficherSurplus(
     JSON.parse(localStorage.getItem("agriflash-surplus") || "[]").concat(
       surplusData,
     ),
   );
 
-  // Formulaire
   initFormulaire();
 });

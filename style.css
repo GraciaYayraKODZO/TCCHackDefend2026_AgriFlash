@@ -471,3 +471,94 @@ nav a.active {
   color: var(--vert-fonce);
   font-weight: 700;
 }
+
+/* === AJOUTS à coller à la fin de style.css === */
+
+/* EMOJI PRODUIT */
+.card-emoji {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* ACHETEUR CIBLE */
+.card-ideal {
+  font-size: 0.82rem;
+  color: var(--vert-fonce);
+  background: var(--vert-clair);
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  margin: 0.25rem 0 0.5rem;
+}
+
+/* BOUTON RÉINITIALISER */
+.btn-reinit {
+  padding: 8px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--blanc);
+  cursor: pointer;
+  color: var(--texte-muted);
+  transition: background 0.2s;
+}
+.btn-reinit:hover {
+  background: var(--rouge-clair);
+  border-color: #a32d2d;
+  color: #a32d2d;
+}
+
+/* SECTION IMPACT */
+.impact-section {
+  background: var(--vert-fonce);
+  color: var(--blanc);
+  padding: 4rem 2rem;
+  text-align: center;
+}
+.impact-section h2 {
+  font-size: 1.6rem;
+  color: var(--blanc);
+  margin-bottom: 0.5rem;
+}
+.impact-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.7;
+  margin-bottom: 2.5rem;
+}
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  max-width: 900px;
+  margin: 0 auto 2rem;
+}
+.impact-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  padding: 1.5rem 1rem;
+}
+.impact-number {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #9fe1cb;
+  margin-bottom: 0.5rem;
+}
+.impact-label {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+.impact-source {
+  font-size: 0.75rem;
+  opacity: 0.55;
+  font-style: italic;
+}
+.impact-cta {
+  font-size: 1rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}

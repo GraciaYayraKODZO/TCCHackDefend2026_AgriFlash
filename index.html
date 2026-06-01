@@ -38,12 +38,70 @@
       </div>
     </section>
 
+    <!-- SECTION IMPACT -->
+    <section class="impact-section">
+      <div class="container">
+        <h2>Le problème que nous résolvons</h2>
+        <p class="impact-subtitle">
+          Des chiffres officiels qui parlent d'eux-mêmes
+        </p>
+        <div class="impact-grid">
+          <div class="impact-card">
+            <div class="impact-number">42%</div>
+            <div class="impact-label">
+              des tomates perdues en grande saison au Togo
+            </div>
+            <div class="impact-source">
+              Source : Thèse HAL — Solanum lycopersicum au Togo
+            </div>
+          </div>
+          <div class="impact-card">
+            <div class="impact-number">90%</div>
+            <div class="impact-label">
+              de pertes en petite saison lors des pics de surproduction
+            </div>
+            <div class="impact-source">Source : HAL / Université du Togo</div>
+          </div>
+          <div class="impact-card">
+            <div class="impact-number">625 000</div>
+            <div class="impact-label">
+              Togolais en insécurité alimentaire en 2025
+            </div>
+            <div class="impact-source">
+              Source : FAO — Rapport insécurité alimentaire 2025
+            </div>
+          </div>
+          <div class="impact-card">
+            <div class="impact-number">40%</div>
+            <div class="impact-label">
+              du PIB togolais dépend de l'agriculture
+            </div>
+            <div class="impact-source">
+              Source : Finances AO / Conseil National du Crédit
+            </div>
+          </div>
+        </div>
+        <p class="impact-cta">
+          AgriFlash connecte producteurs et acheteurs en moins de 60 secondes —
+          <strong>avant que les produits ne se gâtent.</strong>
+        </p>
+      </div>
+    </section>
+
     <section class="liste-section" id="surplus">
       <div class="container">
         <div class="liste-header">
           <h2>Surplus disponibles</h2>
           <div class="filtres">
             <input type="text" id="search" placeholder="Rechercher..." />
+            <select id="filtre-categorie">
+              <option value="">Toutes catégories</option>
+              <option value="legumes">🥬 Légumes</option>
+              <option value="fruits">🍎 Fruits</option>
+              <option value="tubercules">🥔 Tubercules</option>
+              <option value="condiments">🌶️ Condiments</option>
+              <option value="cereales">🌽 Céréales</option>
+            </select>
             <select id="filtre-region">
               <option value="">Toutes les régions</option>
               <option value="Lomé">Lomé</option>
@@ -57,6 +115,7 @@
               <option value="urgent">🟠 Urgent</option>
               <option value="normal">🟢 Normal</option>
             </select>
+            <button id="btn-reinit" class="btn-reinit">↺ Réinitialiser</button>
           </div>
         </div>
         <div class="grid-surplus" id="grid-surplus"></div>
