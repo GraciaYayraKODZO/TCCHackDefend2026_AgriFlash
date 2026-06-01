@@ -11,17 +11,29 @@
 **Problématique :** Chaque année, des milliers de producteurs agricoles togolais perdent des produits périssables faute d'acheteurs disponibles à temps ou de canaux de distribution rapides. Ces pertes post-récolte représentent un manque à gagner économique majeur et aggravent l'insécurité alimentaire.
 
 **Track :** Agriculture & Sécurité Alimentaire — TCC Hack & Defend 2026  
+<<<<<<< HEAD
 **Thème :** *"Jeune togolais, code ta nation, défends ton avenir."*
+=======
+**Thème :** _"Jeune togolais, code ta nation, défends ton avenir."_
+>>>>>>> 066bf84 (Correction liens GitHub Pages README)
 
 ---
 
 ## Prérequis
 
+<<<<<<< HEAD
 | Élément | Détail |
 |---|---|
 | Navigateur | Chrome, Firefox, Edge (version récente) |
 | Connexion internet | Requise pour l'accès en ligne |
 | Outils locaux | Aucun — projet 100% front-end (HTML/CSS/JS) |
+=======
+| Élément                   | Détail                                              |
+| ------------------------- | --------------------------------------------------- |
+| Navigateur                | Chrome, Firefox, Edge (version récente)             |
+| Connexion internet        | Requise pour l'accès en ligne                       |
+| Outils locaux             | Aucun — projet 100% front-end (HTML/CSS/JS)         |
+>>>>>>> 066bf84 (Correction liens GitHub Pages README)
 | Serveur local (optionnel) | Live Server (VS Code) ou tout serveur HTTP statique |
 
 > Aucune installation de Node.js, Python ou base de données n'est nécessaire.
@@ -89,19 +101,33 @@ L'application ne nécessite **aucune authentification**. Elle est accessible san
 
 ## Stack technologique
 
+<<<<<<< HEAD
 | Technologie | Rôle |
 |---|---|
 | HTML5 | Structure de l'interface |
 | CSS3 | Mise en forme et design responsive |
 | JavaScript (Vanilla) | Logique métier, filtres, localStorage |
 | GitHub Pages | Hébergement et déploiement |
+=======
+| Technologie          | Rôle                                  |
+| -------------------- | ------------------------------------- |
+| HTML5                | Structure de l'interface              |
+| CSS3                 | Mise en forme et design responsive    |
+| JavaScript (Vanilla) | Logique métier, filtres, localStorage |
+| GitHub Pages         | Hébergement et déploiement            |
+>>>>>>> 066bf84 (Correction liens GitHub Pages README)
 
 ---
 
 ## Membre de l'équipe
 
+<<<<<<< HEAD
 | Nom | Rôle | Filière |
 |---|---|---|
+=======
+| Nom                | Rôle                                                  | Filière                                                    |
+| ------------------ | ----------------------------------------------------- | ---------------------------------------------------------- |
+>>>>>>> 066bf84 (Correction liens GitHub Pages README)
 | KODZO Yayra Gracia | Développeuse — conception, développement, déploiement | Développement Web & Mobile — iPNet Institute of Technology |
 
 ---
@@ -113,4 +139,8 @@ L'application ne nécessite **aucune authentification**. Elle est accessible san
 
 ---
 
+<<<<<<< HEAD
 *TCC Hack & Defend 2026 — iPNet Institute of Technology, Lomé, Togo*
+=======
+_TCC Hack & Defend 2026 — iPNet Institute of Technology, Lomé, Togo_
+>>>>>>> 066bf84 (Correction liens GitHub Pages README)
