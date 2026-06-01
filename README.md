@@ -10,7 +10,7 @@
 
 **Problématique :** Chaque année, des milliers de producteurs agricoles togolais perdent des produits périssables faute d'acheteurs disponibles à temps ou de canaux de distribution rapides. Ces pertes post-récolte représentent un manque à gagner économique majeur et aggravent l'insécurité alimentaire.
 
-**Track :** Agriculture & Sécurité Alimentaire — TCC Hack & Defend 2026
+**Track :** Agriculture & Sécurité Alimentaire — TCC Hack & Defend 2026  
 **Thème :** *"Jeune togolais, code ta nation, défends ton avenir."*
 
 ---
@@ -34,7 +34,7 @@
 
 Le projet est déployé sur GitHub Pages, accessible directement :
 
-👉 **[https://graciayayrakodzo.github.io/AgriFlash](https://graciayayrakodzo.github.io/AgriFlash)**
+👉 **[https://graciayayrakodzo.github.io/TCCHackDefend2026_AgriFlash](https://graciayayrakodzo.github.io/TCCHackDefend2026_AgriFlash)**
 
 Aucune installation requise.
 
@@ -109,7 +109,8 @@ L'application ne nécessite **aucune authentification**. Elle est accessible san
 ## Liens
 
 - 🔗 **Dépôt GitHub :** [TCCHackDefend2026_AgriFlash](https://github.com/GraciaYayraKODZO/TCCHackDefend2026_AgriFlash)
-- 🌐 **Application en ligne :** [graciayayrakodzo.github.io/AgriFlash](https://graciayayrakodzo.github.io/AgriFlash)
+- 🌐 **Application en ligne :** [graciayayrakodzo.github.io/TCCHackDefend2026_AgriFlash](https://graciayayrakodzo.github.io/TCCHackDefend2026_AgriFlash)
+
 ---
 
 *TCC Hack & Defend 2026 — iPNet Institute of Technology, Lomé, Togo*
