@@ -1,34 +1,115 @@
-# AgriFlash 🌱
+# 🌱 AgriFlash
 
-AgriFlash est une plateforme web de gestion des surplus agricoles permettant aux producteurs togolais de publier rapidement leurs produits excédentaires afin de les connecter à des acheteurs locaux avant perte ou gaspillage.
+**AgriFlash** est une plateforme web de gestion des surplus agricoles permettant aux producteurs togolais de publier rapidement leurs produits excédentaires et d'être mis en relation avec des acheteurs locaux (restaurants, cantines, revendeurs, coopératives, particuliers) avant perte ou gaspillage.
 
-## Problème
+> Un producteur peut publier un surplus en moins de 60 secondes.
 
-Chaque année, de nombreux producteurs agricoles perdent des produits périssables faute d’acheteurs disponibles à temps ou de canaux de distribution rapides.
+---
 
-## Solution
+## Problématique & Track
 
-AgriFlash permet à un producteur de publier un surplus en moins de 60 secondes et d’être mis en relation rapidement avec des acheteurs locaux (restaurants, revendeurs, coopératives, particuliers).
+**Problématique :** Chaque année, des milliers de producteurs agricoles togolais perdent des produits périssables faute d'acheteurs disponibles à temps ou de canaux de distribution rapides. Ces pertes post-récolte représentent un manque à gagner économique majeur et aggravent l'insécurité alimentaire.
 
-## Objectif
+**Track :** Agriculture & Sécurité Alimentaire — TCC Hack & Defend 2026
+**Thème :** *"Jeune togolais, code ta nation, défends ton avenir."*
 
-Réduire le gaspillage agricole et améliorer l’écoulement rapide des produits périssables au Togo.
+---
 
-## Fonctionnalités MVP
+## Prérequis
 
-- Publication rapide d’un surplus agricole
-- Consultation des produits disponibles
-- Réservation rapide
-- Affichage des informations du vendeur
-- Gestion simple des urgences de fraîcheur
+| Élément | Détail |
+|---|---|
+| Navigateur | Chrome, Firefox, Edge (version récente) |
+| Connexion internet | Requise pour l'accès en ligne |
+| Outils locaux | Aucun — projet 100% front-end (HTML/CSS/JS) |
+| Serveur local (optionnel) | Live Server (VS Code) ou tout serveur HTTP statique |
 
-## Technologies
+> Aucune installation de Node.js, Python ou base de données n'est nécessaire.
 
-HTML | CSS | JavaScript | Firebase
+---
 
-## Contexte
+## Installation
 
-Projet développé dans le cadre du TCC Hack & Defend 2026.
+### Option 1 — Accès en ligne (recommandé)
 
-Thème :
-> "Jeune togolais, code ta nation, défends ton avenir."
+Le projet est déployé sur GitHub Pages, accessible directement :
+
+👉 **[https://graciayayrakodzo.github.io/AgriFlash](https://graciayayrakodzo.github.io/AgriFlash)**
+
+Aucune installation requise.
+
+### Option 2 — Exécution en local
+
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/GraciaYayraKODZO/TCCHackDefend2026_AgriFlash.git
+
+# 2. Accéder au dossier
+cd TCCHackDefend2026_AgriFlash
+```
+
+Puis ouvrir `index.html` directement dans le navigateur **ou** lancer un serveur local :
+
+```bash
+# Avec VS Code : clic droit sur index.html → "Open with Live Server"
+
+# Avec Python (si installé)
+python -m http.server 8000
+# Puis ouvrir http://localhost:8000
+```
+
+---
+
+## Lancement de l'application
+
+1. Ouvrir `index.html` dans le navigateur (ou accéder à l'URL GitHub Pages)
+2. La page d'accueil affiche les surplus disponibles avec filtres par région, urgence et catégorie
+3. Cliquer sur **"Publier un surplus"** pour accéder au formulaire de publication
+4. Cliquer sur **"Contacter"** sur une carte produit pour voir les détails et le lien WhatsApp
+
+---
+
+## Identifiants de test
+
+L'application ne nécessite **aucune authentification**. Elle est accessible sans compte.
+
+> **Note connue :** les surplus publiés via le formulaire sont stockés en `localStorage` (session navigateur). Ils disparaissent lors d'un rechargement complet. Les données de démonstration (8 produits togolais réalistes) sont permanentes et affichées par défaut. Cette limitation est documentée et sera adressée dans une version avec backend.
+
+---
+
+## Fonctionnalités principales
+
+- 📋 **Consultation** des surplus disponibles avec badge d'urgence (Critique / Urgent / Normal)
+- 🔍 **Filtres** par région, catégorie, niveau d'urgence et recherche textuelle
+- ➕ **Publication** d'un nouveau surplus via formulaire (nom, quantité, prix, région, contact)
+- 📞 **Mise en relation** directe par WhatsApp ou appel téléphonique
+- 📱 Interface responsive (mobile et desktop)
+
+---
+
+## Stack technologique
+
+| Technologie | Rôle |
+|---|---|
+| HTML5 | Structure de l'interface |
+| CSS3 | Mise en forme et design responsive |
+| JavaScript (Vanilla) | Logique métier, filtres, localStorage |
+| GitHub Pages | Hébergement et déploiement |
+
+---
+
+## Membre de l'équipe
+
+| Nom | Rôle | Filière |
+|---|---|---|
+| KODZO Yayra Gracia | Développeuse — conception, développement, déploiement | Développement Web & Mobile — iPNet Institute of Technology |
+
+---
+
+## Liens
+
+- 🔗 **Dépôt GitHub :** [TCCHackDefend2026_AgriFlash](https://github.com/GraciaYayraKODZO/TCCHackDefend2026_AgriFlash)
+- 🌐 **Application en ligne :** [graciayayrakodzo.github.io/AgriFlash](https://graciayayrakodzo.github.io/AgriFlash)
+---
+
+*TCC Hack & Defend 2026 — iPNet Institute of Technology, Lomé, Togo*
