@@ -1,26 +1,37 @@
-# 🌱 AgriFlash
+# 🌱 AgriFlash — Plateforme de lutte contre les pertes post-récolte au Togo
 
-**AgriFlash** est une plateforme web de lutte contre les pertes post-récolte au Togo.  
-Elle connecte les producteurs agricoles togolais aux acheteurs locaux (restaurants, cantines, revendeurs, coopératives, particuliers) **en moins de 60 secondes**, avant que les produits ne se gâtent.
+> **Track :** Agriculture & Sécurité Alimentaire — TCC Hack & Defend 2026
+> **Thème :** _"Jeune togolais, code ta nation, défends ton avenir."_
+> **Statut :** ![Statut](https://img.shields.io/badge/Statut-PoC%20fonctionnel-green)
+
+**AgriFlash** est une plateforme web légère et ultra-rapide conçue pour lutter concrètement contre les pertes post-récolte au Togo. Elle connecte les producteurs agricoles togolais aux acheteurs locaux (restaurants, cantines, revendeurs, coopératives, particuliers) **en moins de 60 secondes**, avant que les produits ne se gâtent.
 
 ---
 
-## 🎯 Problématique & Track
+## 🎯 Problématique
 
-|                   |                                                                                                                                                                                                                                             |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Problématique** | Chaque année, des milliers de producteurs togolais perdent des produits périssables faute d'acheteurs disponibles à temps. Ces pertes post-récolte aggravent l'insécurité alimentaire et représentent un manque à gagner économique majeur. |
-| **Track**         | Agriculture & Sécurité Alimentaire — TCC Hack & Defend 2026                                                                                                                                                                                 |
-| **Thème**         | _"Jeune togolais, code ta nation, défends ton avenir."_                                                                                                                                                                                     |
+Chaque année, des milliers de producteurs togolais voient leurs efforts réduits à néant, faute d'acheteurs disponibles au moment précis de la récolte. Ces pertes massives aggravent l'insécurité alimentaire et freinent l'économie nationale.
 
-### Chiffres clés (sources officielles)
+### 📊 Chiffres clés (sources officielles)
 
 | Indicateur                                 | Valeur      | Source                                     |
 | ------------------------------------------ | ----------- | ------------------------------------------ |
-| Tomates perdues en grande saison           | **42 %**    | Thèse HAL — _Solanum lycopersicum_ au Togo |
-| Pertes en petite saison                    | **90 %**    | HAL / Université du Togo                   |
-| Togolais en insécurité alimentaire (2025)  | **625 000** | FAO — Rapport 2025                         |
+| Pertes de tomates en grande saison         | **42 %**    | Thèse HAL — _Solanum lycopersicum_ au Togo |
+| Pics de pertes en petite saison            | **90 %**    | HAL / Université de Lomé                   |
+| Togolais en insécurité alimentaire (2025)  | **625 000** | FAO — Rapport de Situation 2025            |
 | Part de l'agriculture dans le PIB togolais | **40 %**    | Finances AO / Conseil National du Crédit   |
+
+---
+
+## 📋 Prérequis
+
+- Un navigateur web moderne (Chrome, Firefox, Edge, Safari — version récente)
+- Connexion internet pour charger les bibliothèques externes (Leaflet.js, Chart.js via CDN)
+- Aucune installation de Node.js, Python ou base de données n'est nécessaire
+
+## 🔐 Authentification
+
+Aucune authentification requise. L'application est accessible directement sans création de compte.
 
 ---
 
@@ -82,22 +93,22 @@ Elle connecte les producteurs agricoles togolais aux acheteurs locaux (restauran
 
 ## 🛠️ Stack technologique
 
-| Technologie          | Rôle                                      |
-| -------------------- | ----------------------------------------- |
-| HTML5                | Structure de l'interface                  |
-| CSS3                 | Mise en forme et design responsive        |
-| JavaScript (Vanilla) | Logique métier, filtres, IA, localStorage |
-| Leaflet.js (CDN)     | Carte interactive du Togo                 |
-| Chart.js (CDN)       | Graphiques d'impact                       |
-| GitHub Pages         | Hébergement et déploiement continu        |
+Pour garantir une accessibilité maximale même en zone rurale sur des réseaux mobiles limités, l'architecture a été volontairement optimisée sans framework lourd.
 
-> Aucune installation de Node.js, Python ou base de données n'est nécessaire.
+| Technologie               | Rôle                                      |
+| ------------------------- | ----------------------------------------- |
+| HTML5                     | Structure sémantique de l'interface       |
+| CSS3 Flexbox & Grid       | Mise en forme responsive et animations    |
+| JavaScript Vanilla (ES6+) | Logique métier, filtres, IA, localStorage |
+| Leaflet.js (CDN)          | Carte interactive du Togo                 |
+| Chart.js v4 (CDN)         | Graphiques d'impact                       |
+| GitHub Pages              | Hébergement et déploiement continu        |
 
 ---
 
 ## ⚙️ Installation & lancement
 
-### Option 1 — Accès en ligne _(recommandé)_
+### Option 1 — Accès direct en ligne _(recommandé)_
 
 👉 **[https://graciayayrakodzo.github.io/TCCHackDefend2026_AgriFlash](https://graciayayrakodzo.github.io/TCCHackDefend2026_AgriFlash)**
 
@@ -125,21 +136,35 @@ python -m http.server 8000
 
 ---
 
+## 🔐 Données de test (pour le jury)
+
+Le prototype charge automatiquement 5 lots de démonstration réalistes modélisant différentes régions du Togo :
+
+- **Tomates** — Agoè, Lomé
+- **Gombos** — Sokodé
+- **Piments** — Atakpamé
+- **Manioc** — Pagouda, Kara
+- **Bananes Plantains** — Bè, Lomé
+
+Pour tester la publication : onglet **"+ Publier un surplus"** → remplir les champs → valider. Le lot apparaît immédiatement sur la carte et dans le catalogue. Un bouton **↺ Réinitialiser** est disponible pour rétablir l'affichage d'origine.
+
+---
+
 ## 🗂️ Structure du projet
 
 ```
 TCCHackDefend2026_AgriFlash/
-├── index.html          # Page principale (dashboard, carte, surplus, demandes)
+├── index.html          # Vue principale : dashboard, carte, surplus, demandes, graphiques
 ├── add-product.html    # Formulaire de publication d'un surplus
-├── style.css           # Styles complets (responsive, composants, animations)
+├── style.css           # Charte graphique unifiée (responsive, animations, modals)
 └── app.js              # Logique JS : données, dashboard, carte, IA, graphiques, filtres
 ```
 
 ---
 
-## 📝 Notes connues
+## ⚠️ Notes connues (limites du PoC)
 
-- Les surplus publiés via le formulaire sont stockés en `localStorage` (persistance locale par navigateur). Cette limitation sera adressée dans une version avec backend.
+- Les surplus publiés via le formulaire sont stockés en `localStorage` (persistance locale par navigateur). Cette limitation sera adressée dans une version avec backend (API REST + base de données relationnelle).
 - Les données de démonstration (8 produits togolais réalistes) sont permanentes.
 - Les statistiques du dashboard et les graphiques sont des projections basées sur des données simulées réalistes à des fins de démonstration.
 
@@ -147,9 +172,9 @@ TCCHackDefend2026_AgriFlash/
 
 ## 👤 Membre de l'équipe
 
-| Nom                    | Rôle                                                  | Filière                                                    |
-| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------- |
-| **KODZO Yayra Gracia** | Développeuse — conception, développement, déploiement | Développement Web & Mobile — iPNet Institute of Technology |
+| Nom                    | Rôle                                                  | Filière                                                          |
+| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------- |
+| **KODZO Yayra Gracia** | Développeuse — conception, développement, déploiement | Développement Web & Mobile — iPNet Institute of Technology, Lomé |
 
 ---
 
@@ -162,4 +187,10 @@ TCCHackDefend2026_AgriFlash/
 
 ---
 
-_TCC Hack & Defend 2026 — iPNet Institute of Technology, Lomé, Togo_
+## 📄 Licence
+
+Distribué sous licence MIT.
+
+---
+
+_TCC Hack & Defend 2026 — iPNet Institute of Technology, Lomé, Togo 🇹🇬_
