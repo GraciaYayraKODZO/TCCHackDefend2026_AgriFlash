@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AgriFlash 🌱 — Surplus agricoles au Togo</title>
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
   </head>
   <body>
+    <!-- NAVBAR -->
     <header class="navbar">
       <div class="navbar-inner">
         <div class="logo">🌱 <span>AgriFlash</span></div>
@@ -19,6 +24,25 @@
       </div>
     </header>
 
+    <!-- TICKER -->
+    <div class="ticker" aria-label="Activité en direct">
+      <div class="ticker-inner" id="ticker-inner">
+        <span>🔴 Tomates mûres — 80 kg — Lomé</span>
+        <span>🟠 Gombos frais — 30 kg — Sokodé</span>
+        <span>🟢 Maïs séché — 120 kg — Atakpamé</span>
+        <span>🔴 Manioc frais — 5 sacs — Kara</span>
+        <span>🟠 Mangues — 120 unités — Atakpamé</span>
+        <span>🟢 Ignames — 3 sacs — Kara</span>
+        <span>🔴 Tomates mûres — 80 kg — Lomé</span>
+        <span>🟠 Gombos frais — 30 kg — Sokodé</span>
+        <span>🟢 Maïs séché — 120 kg — Atakpamé</span>
+        <span>🔴 Manioc frais — 5 sacs — Kara</span>
+        <span>🟠 Mangues — 120 unités — Atakpamé</span>
+        <span>🟢 Ignames — 3 sacs — Kara</span>
+      </div>
+    </div>
+
+    <!-- HERO -->
     <section class="hero">
       <div class="hero-content">
         <span class="hero-badge">🇹🇬 Fait pour le Togo</span>
@@ -38,7 +62,63 @@
       </div>
     </section>
 
-    <!-- SECTION IMPACT -->
+    <!-- DASHBOARD D'IMPACT -->
+    <section class="dashboard-section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h2>📊 Impact National — En direct</h2>
+          <span class="live-badge">● LIVE</span>
+        </div>
+        <div class="dashboard-grid">
+          <div class="dash-card">
+            <div class="dash-icon">📦</div>
+            <div class="dash-num" id="d-surplus">0</div>
+            <div class="dash-label">Surplus actifs</div>
+          </div>
+          <div class="dash-card alert">
+            <div class="dash-icon">⚠️</div>
+            <div class="dash-num" id="d-critiques">0</div>
+            <div class="dash-label">Surplus critiques</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-icon">🌍</div>
+            <div class="dash-num" id="d-kg">0</div>
+            <div class="dash-label">Kg sauvables</div>
+          </div>
+          <div class="dash-card success">
+            <div class="dash-icon">💰</div>
+            <div class="dash-num" id="d-fcfa">0</div>
+            <div class="dash-label">FCFA préservables</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-icon">🍽️</div>
+            <div class="dash-num" id="d-repas">0</div>
+            <div class="dash-label">Repas potentiels</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-icon">📍</div>
+            <div class="dash-num" id="d-regions">0</div>
+            <div class="dash-label">Régions couvertes</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARTE DU TOGO -->
+    <section class="map-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>📍 Carte des surplus — Togo</h2>
+          <p class="section-sub">
+            Visualisation en temps réel des surplus agricoles sur le territoire
+            togolais
+          </p>
+        </div>
+        <div id="map"></div>
+      </div>
+    </section>
+
+    <!-- SECTION IMPACT CHIFFRES -->
     <section class="impact-section">
       <div class="container">
         <h2>Le problème que nous résolvons</h2>
@@ -88,6 +168,61 @@
       </div>
     </section>
 
+    <!-- GRAPHIQUES D'IMPACT -->
+    <section class="charts-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>📈 Graphiques d'impact</h2>
+          <p class="section-sub">
+            Projection sur 6 mois d'utilisation d'AgriFlash
+          </p>
+        </div>
+        <div class="charts-row">
+          <div class="chart-box">
+            <div class="chart-label">
+              Pertes évitées vs. pertes habituelles (%)
+            </div>
+            <div class="chart-legend">
+              <span><span class="leg-dot rouge"></span>Sans AgriFlash</span>
+              <span><span class="leg-dot vert"></span>Avec AgriFlash</span>
+            </div>
+            <div style="position: relative; height: 220px">
+              <canvas id="chartPertes"></canvas>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-label">Connexions producteur–acheteur / mois</div>
+            <div class="chart-legend">
+              <span><span class="leg-dot vert-f"></span>Connexions</span>
+            </div>
+            <div style="position: relative; height: 220px">
+              <canvas id="chartConnexions"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="charts-row" style="margin-top: 1.25rem">
+          <div class="chart-box">
+            <div class="chart-label">
+              Kg sauvés du gaspillage (cumul hebdomadaire)
+            </div>
+            <div class="chart-legend">
+              <span><span class="leg-dot vert"></span>Kg sauvés</span>
+            </div>
+            <div style="position: relative; height: 200px">
+              <canvas id="chartKg"></canvas>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-label">Répartition des surplus par catégorie</div>
+            <div style="position: relative; height: 200px">
+              <canvas id="chartCategories"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LISTE DES SURPLUS -->
     <section class="liste-section" id="surplus">
       <div class="container">
         <div class="liste-header">
@@ -122,6 +257,21 @@
       </div>
     </section>
 
+    <!-- SECTION DEMANDES -->
+    <section class="demandes-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>🛒 Demandes en attente</h2>
+          <p class="section-sub">
+            Des acheteurs recherchent activement ces produits — connectez-vous
+            maintenant
+          </p>
+        </div>
+        <div class="demandes-grid" id="demandes-grid"></div>
+      </div>
+    </section>
+
+    <!-- COMMENT ÇA MARCHE -->
     <section class="how-section">
       <div class="container">
         <h2>Comment ça marche ?</h2>
@@ -149,11 +299,12 @@
 
     <footer class="footer">
       <p>
-        AgriFlash 🌱 — TCC Hack & Defend 2026 | "Jeune togolais, code ta nation,
-        défends ton avenir."
+        AgriFlash 🌱 — TCC Hack &amp; Defend 2026 | "Jeune togolais, code ta
+        nation, défends ton avenir."
       </p>
     </footer>
 
+    <!-- MODAL CONTACT -->
     <div class="modal-overlay" id="modal" style="display: none">
       <div class="modal">
         <button class="modal-close" id="modal-close">✕</button>
@@ -162,6 +313,35 @@
       </div>
     </div>
 
+    <!-- MODAL SUCCÈS MISE EN RELATION -->
+    <div class="modal-overlay" id="modal-success" style="display: none">
+      <div class="modal modal-success-box">
+        <div class="success-icon">🎉</div>
+        <h3>Mise en relation effectuée !</h3>
+        <div id="success-impact"></div>
+        <button class="btn-close-success" onclick="fermerModalSuccess()">
+          Fermer
+        </button>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION TOAST -->
+    <div class="notif-toast" id="notif">
+      <div class="notif-title" id="notif-title"></div>
+      <div class="notif-sub" id="notif-sub"></div>
+    </div>
+
+    <!-- ANALYSE IA PANEL -->
+    <div class="ia-panel" id="ia-panel" style="display: none">
+      <div class="ia-panel-inner">
+        <button class="ia-close" id="ia-close">✕</button>
+        <div class="ia-header">🤖 Analyse AgriFlash</div>
+        <div id="ia-content"></div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
