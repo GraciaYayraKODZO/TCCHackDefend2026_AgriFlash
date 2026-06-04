@@ -9,13 +9,119 @@
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
+    <style>
+      /* Z-INDEX HIERARCHY */
+      :root {
+        --z-map: 10;
+        --z-navbar: 100;
+        --z-modal: 200;
+        --z-toast: 300;
+      }
+      #map {
+        z-index: var(--z-map);
+      }
+      .navbar {
+        z-index: var(--z-navbar);
+      }
+      .modal-overlay {
+        z-index: var(--z-modal);
+      }
+      .notif-toast {
+        z-index: var(--z-toast);
+      }
+      .ia-panel {
+        z-index: var(--z-toast);
+      }
+
+      /* HAMBURGER MENU */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+      }
+      .hamburger span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: var(--vert-fonce);
+        border-radius: 2px;
+        transition: transform 0.2s;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      @media (max-width: 600px) {
+        .hamburger {
+          display: flex;
+        }
+        .nav-links {
+          display: none;
+          position: absolute;
+          top: 64px;
+          right: 0;
+          left: 0;
+          background: var(--blanc);
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 1rem 1.5rem;
+          border-bottom: 1px solid #e0e0e0;
+          gap: 1rem;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+        .nav-links.nav-open {
+          display: flex;
+        }
+      }
+
+      /* SUPPRESSION BOUTON */
+      .btn-supprimer {
+        background: var(--rouge-clair);
+        color: #a32d2d;
+        border: 1px solid #f7c1c1;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn-supprimer:hover {
+        background: #f7c1c1;
+      }
+
+      /* PREFERS REDUCED MOTION */
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- NAVBAR -->
     <header class="navbar">
-      <div class="navbar-inner">
+      <div class="navbar-inner" style="position: relative">
         <div class="logo">🌱 <span>AgriFlash</span></div>
-        <nav>
+        <button
+          class="hamburger"
+          id="hamburger"
+          aria-expanded="false"
+          aria-label="Menu navigation"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <nav
+          class="nav-links"
+          id="nav-links"
+          role="navigation"
+          aria-label="Navigation principale"
+        >
           <a href="index.html" class="active">Accueil</a>
           <a href="add-product.html" class="btn-publier"
             >+ Publier un surplus</a
@@ -25,20 +131,38 @@
     </header>
 
     <!-- TICKER -->
-    <div class="ticker" aria-label="Activité en direct">
+    <div class="ticker" aria-label="Activité en direct" role="marquee">
       <div class="ticker-inner" id="ticker-inner">
-        <span>🔴 Tomates mûres — 80 kg — Lomé</span>
-        <span>🟠 Gombos frais — 30 kg — Sokodé</span>
-        <span>🟢 Maïs séché — 120 kg — Atakpamé</span>
-        <span>🔴 Manioc frais — 5 sacs — Kara</span>
-        <span>🟠 Mangues — 120 unités — Atakpamé</span>
-        <span>🟢 Ignames — 3 sacs — Kara</span>
-        <span>🔴 Tomates mûres — 80 kg — Lomé</span>
-        <span>🟠 Gombos frais — 30 kg — Sokodé</span>
-        <span>🟢 Maïs séché — 120 kg — Atakpamé</span>
-        <span>🔴 Manioc frais — 5 sacs — Kara</span>
-        <span>🟠 Mangues — 120 unités — Atakpamé</span>
-        <span>🟢 Ignames — 3 sacs — Kara</span>
+        <span
+          >🔴 850 kg de tomates disponibles — Agoè, Lomé — risque de perte sous
+          24h</span
+        >
+        <span
+          >🔴 1 200 kg de tomates — Atakpamé — surplus massif à écouler
+          d'urgence</span
+        >
+        <span>🟠 80 kg de piments frais — Kpalimé</span>
+        <span
+          >🔴 120 kg de laitues fraîches — Lomé — se flétrissent
+          rapidement</span
+        >
+        <span>🔴 650 kg de tomates — Dapaong — Savanes</span>
+        <span>🟠 300 kg de mangues mûres — Danyi — risque pourriture 48h</span>
+        <span
+          >🔴 850 kg de tomates disponibles — Agoè, Lomé — risque de perte sous
+          24h</span
+        >
+        <span
+          >🔴 1 200 kg de tomates — Atakpamé — surplus massif à écouler
+          d'urgence</span
+        >
+        <span>🟠 80 kg de piments frais — Kpalimé</span>
+        <span
+          >🔴 120 kg de laitues fraîches — Lomé — se flétrissent
+          rapidement</span
+        >
+        <span>🔴 650 kg de tomates — Dapaong — Savanes</span>
+        <span>🟠 300 kg de mangues mûres — Danyi — risque pourriture 48h</span>
       </div>
     </div>
 
@@ -47,13 +171,14 @@
       <div class="hero-content">
         <span class="hero-badge">🇹🇬 Fait pour le Togo</span>
         <h1>
-          Écoulez vos surplus<br /><span class="accent"
+          Sauvez les produits frais<br /><span class="accent"
             >avant qu'il soit trop tard</span
           >
         </h1>
         <p>
-          AgriFlash connecte les producteurs togolais aux acheteurs locaux en
-          moins de 60 secondes.
+          AgriFlash connecte producteurs et acheteurs togolais en moins de 60
+          secondes — pour éviter que tomates, laitues et fruits mûrs ne se
+          perdent chaque jour.
         </p>
         <div class="hero-actions">
           <a href="add-product.html" class="btn-primary">Publier un surplus</a>
@@ -67,7 +192,7 @@
       <div class="container">
         <div class="dashboard-header">
           <h2>📊 Impact National — En direct</h2>
-          <span class="live-badge">● LIVE</span>
+          <span class="live-badge" aria-live="polite">● LIVE</span>
         </div>
         <div class="dashboard-grid">
           <div class="dash-card">
@@ -110,11 +235,15 @@
         <div class="section-header">
           <h2>📍 Carte des surplus — Togo</h2>
           <p class="section-sub">
-            Visualisation en temps réel des surplus agricoles sur le territoire
-            togolais
+            Visualisation en temps réel des surplus agricoles périssables sur le
+            territoire togolais
           </p>
         </div>
-        <div id="map"></div>
+        <div
+          id="map"
+          role="region"
+          aria-label="Carte des surplus agricoles au Togo"
+        ></div>
       </div>
     </section>
 
@@ -162,8 +291,12 @@
           </div>
         </div>
         <p class="impact-cta">
-          AgriFlash connecte producteurs et acheteurs en moins de 60 secondes —
-          <strong>avant que les produits ne se gâtent.</strong>
+          AgriFlash aide producteurs, commerçants et acheteurs à sauver les
+          produits agricoles périssables avant qu'ils ne se détériorent. La
+          plateforme facilite la mise en relation rapide —
+          <strong
+            >avant que les tomates et les légumes frais ne se gâtent.</strong
+          >
         </p>
       </div>
     </section>
@@ -228,8 +361,13 @@
         <div class="liste-header">
           <h2>Surplus disponibles</h2>
           <div class="filtres">
-            <input type="text" id="search" placeholder="Rechercher..." />
-            <select id="filtre-categorie">
+            <input
+              type="text"
+              id="search"
+              placeholder="Rechercher..."
+              aria-label="Rechercher un surplus"
+            />
+            <select id="filtre-categorie" aria-label="Filtrer par catégorie">
               <option value="">Toutes catégories</option>
               <option value="legumes">🥬 Légumes</option>
               <option value="fruits">🍎 Fruits</option>
@@ -237,14 +375,15 @@
               <option value="condiments">🌶️ Condiments</option>
               <option value="cereales">🌽 Céréales</option>
             </select>
-            <select id="filtre-region">
+            <select id="filtre-region" aria-label="Filtrer par région">
               <option value="">Toutes les régions</option>
-              <option value="Lomé">Lomé</option>
+              <option value="Maritime">Maritime</option>
+              <option value="Plateaux">Plateaux</option>
+              <option value="Centrale">Centrale</option>
               <option value="Kara">Kara</option>
-              <option value="Atakpamé">Atakpamé</option>
-              <option value="Sokodé">Sokodé</option>
+              <option value="Savanes">Savanes</option>
             </select>
-            <select id="filtre-urgence">
+            <select id="filtre-urgence" aria-label="Filtrer par urgence">
               <option value="">Toutes urgences</option>
               <option value="critique">🔴 Critique</option>
               <option value="urgent">🟠 Urgent</option>
@@ -253,7 +392,7 @@
             <button id="btn-reinit" class="btn-reinit">↺ Réinitialiser</button>
           </div>
         </div>
-        <div class="grid-surplus" id="grid-surplus"></div>
+        <div class="grid-surplus" id="grid-surplus" role="list"></div>
       </div>
     </section>
 
@@ -279,7 +418,7 @@
           <div class="step">
             <div class="step-num">01</div>
             <h3>Publiez</h3>
-            <p>Le producteur publie son surplus en 60 secondes.</p>
+            <p>Le producteur publie son surplus frais en 60 secondes.</p>
           </div>
           <div class="step-arrow">→</div>
           <div class="step">
@@ -305,16 +444,31 @@
     </footer>
 
     <!-- MODAL CONTACT -->
-    <div class="modal-overlay" id="modal" style="display: none">
+    <div
+      class="modal-overlay"
+      id="modal"
+      style="display: none"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
       <div class="modal">
-        <button class="modal-close" id="modal-close">✕</button>
+        <button class="modal-close" id="modal-close" aria-label="Fermer">
+          ✕
+        </button>
         <h3 id="modal-title"></h3>
         <div id="modal-body"></div>
       </div>
     </div>
 
-    <!-- MODAL SUCCÈS MISE EN RELATION -->
-    <div class="modal-overlay" id="modal-success" style="display: none">
+    <!-- MODAL SUCCÈS -->
+    <div
+      class="modal-overlay"
+      id="modal-success"
+      style="display: none"
+      role="dialog"
+      aria-modal="true"
+    >
       <div class="modal modal-success-box">
         <div class="success-icon">🎉</div>
         <h3>Mise en relation effectuée !</h3>
@@ -326,15 +480,23 @@
     </div>
 
     <!-- NOTIFICATION TOAST -->
-    <div class="notif-toast" id="notif">
+    <div class="notif-toast" id="notif" role="status" aria-live="polite">
       <div class="notif-title" id="notif-title"></div>
       <div class="notif-sub" id="notif-sub"></div>
     </div>
 
     <!-- ANALYSE IA PANEL -->
-    <div class="ia-panel" id="ia-panel" style="display: none">
+    <div
+      class="ia-panel"
+      id="ia-panel"
+      style="display: none"
+      role="complementary"
+      aria-label="Analyse AgriFlash"
+    >
       <div class="ia-panel-inner">
-        <button class="ia-close" id="ia-close">✕</button>
+        <button class="ia-close" id="ia-close" aria-label="Fermer l'analyse">
+          ✕
+        </button>
         <div class="ia-header">🤖 Analyse AgriFlash</div>
         <div id="ia-content"></div>
       </div>

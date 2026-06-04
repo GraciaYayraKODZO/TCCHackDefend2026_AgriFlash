@@ -5,10 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AgriFlash — Publier un surplus</title>
     <link rel="stylesheet" href="style.css" />
+    <style>
+      :root {
+        --z-navbar: 100;
+      }
+      .navbar {
+        z-index: var(--z-navbar);
+      }
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+      }
+      .hamburger span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: var(--vert-fonce);
+        border-radius: 2px;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
+      @media (max-width: 600px) {
+        .hamburger {
+          display: flex;
+        }
+        .nav-links {
+          display: none;
+          position: absolute;
+          top: 64px;
+          right: 0;
+          left: 0;
+          background: var(--blanc);
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 1rem 1.5rem;
+          border-bottom: 1px solid #e0e0e0;
+          gap: 1rem;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+        .nav-links.nav-open {
+          display: flex;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <header class="navbar">
-      <div class="navbar-inner">
+      <div class="navbar-inner" style="position: relative">
         <div class="logo">
           <a
             href="index.html"
@@ -23,7 +80,15 @@
             🌱 <span>AgriFlash</span>
           </a>
         </div>
-        <nav>
+        <button
+          class="hamburger"
+          id="hamburger"
+          aria-expanded="false"
+          aria-label="Menu navigation"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="nav-links" id="nav-links" role="navigation">
           <a href="index.html">← Retour</a>
         </nav>
       </div>
@@ -35,7 +100,7 @@
           <h1>Publier un surplus</h1>
           <p>
             Remplissez ce formulaire en moins de 60 secondes pour connecter vos
-            produits aux acheteurs locaux.
+            produits frais aux acheteurs locaux.
           </p>
         </div>
 
@@ -50,14 +115,15 @@
             <input
               type="text"
               id="nom-produit"
-              placeholder="Ex : Tomates, Ignames, Maïs..."
+              placeholder="Ex : Tomates, Laitues, Piments..."
               required
+              aria-required="true"
             />
           </div>
 
           <div class="form-group">
             <label for="categorie">Catégorie *</label>
-            <select id="categorie" required>
+            <select id="categorie" required aria-required="true">
               <option value="">-- Sélectionner --</option>
               <option value="legumes">🥬 Légumes</option>
               <option value="fruits">🍎 Fruits</option>
@@ -76,17 +142,18 @@
                 placeholder="Ex : 50"
                 min="1"
                 required
+                aria-required="true"
               />
             </div>
             <div class="form-group">
               <label for="unite">Unité *</label>
-              <select id="unite" required>
+              <select id="unite" required aria-required="true">
                 <option value="">-- Choisir --</option>
                 <option value="kg">kg</option>
                 <option value="tonnes">tonnes</option>
-                <option value="sacs">sacs</option>
-                <option value="caisses">caisses</option>
-                <option value="régimes">régimes</option>
+                <option value="sacs">sacs (≈ 50 kg)</option>
+                <option value="caisses">caisses (≈ 20 kg)</option>
+                <option value="régimes">régimes (≈ 15 kg)</option>
                 <option value="unités">unités</option>
               </select>
             </div>
@@ -101,6 +168,7 @@
                 placeholder="Ex : 5000"
                 min="0"
                 required
+                aria-required="true"
               />
             </div>
             <div class="form-group">
@@ -117,15 +185,15 @@
 
           <div class="form-group">
             <label for="region">Région *</label>
-            <select id="region" required>
+            <select id="region" required aria-required="true">
               <option value="">-- Sélectionner --</option>
-              <option value="Lomé">Lomé</option>
-              <option value="Kara">Kara</option>
-              <option value="Atakpamé">Atakpamé</option>
-              <option value="Sokodé">Sokodé</option>
-              <option value="Dapaong">Dapaong</option>
-              <option value="Tsévié">Tsévié</option>
-              <option value="Kpalimé">Kpalimé</option>
+              <option value="Lomé">Maritime — Lomé</option>
+              <option value="Tsévié">Maritime — Tsévié</option>
+              <option value="Kpalimé">Plateaux — Kpalimé</option>
+              <option value="Atakpamé">Plateaux — Atakpamé</option>
+              <option value="Sokodé">Centrale — Sokodé</option>
+              <option value="Kara">Kara — Kara</option>
+              <option value="Dapaong">Savanes — Dapaong</option>
             </select>
           </div>
 
@@ -140,7 +208,7 @@
 
           <div class="form-group">
             <label for="urgence">Niveau d'urgence *</label>
-            <select id="urgence" required>
+            <select id="urgence" required aria-required="true">
               <option value="">-- Sélectionner --</option>
               <option value="critique">🔴 Critique — moins de 24h</option>
               <option value="urgent">🟠 Urgent — moins de 48h</option>
@@ -156,6 +224,9 @@
               </option>
               <option value="Revendeurs / Marchés">Revendeurs / Marchés</option>
               <option value="Transformateurs">Transformateurs</option>
+              <option value="Hôtels / Supermarchés">
+                Hôtels / Supermarchés
+              </option>
               <option value="Particuliers">Particuliers</option>
               <option value="Tous types d'acheteurs">
                 Tous types d'acheteurs
@@ -168,7 +239,7 @@
             <textarea
               id="description"
               rows="3"
-              placeholder="Qualité, variété, conditions de stockage..."
+              placeholder="Qualité, variété, conditions de stockage, urgence particulière..."
             ></textarea>
           </div>
 
@@ -182,6 +253,7 @@
               id="nom-vendeur"
               placeholder="Ex : Kofi Mensah"
               required
+              aria-required="true"
             />
           </div>
 
@@ -192,6 +264,7 @@
               id="telephone"
               placeholder="Ex : +228 90 00 00 00"
               required
+              aria-required="true"
             />
           </div>
 
