@@ -38,7 +38,7 @@ Aucune installation requise. L'application charge automatiquement 20 surplus de 
 - [Structure du projet](#%EF%B8%8F-structure-du-projet)
 - [Limitations actuelles](#%EF%B8%8F-limitations-actuelles)
 - [Perspectives — Version future](#-perspectives--version-future)
-- [Membre de l'équipe](#-membre-de-léquipe)
+- [Équipe](#-équipe)
 - [Liens](#-liens)
 - [Licence](#-licence)
 
@@ -72,6 +72,20 @@ AgriFlash apporte une réponse directe et immédiate à la perte post-récolte :
 - **Mise en relation directe** producteur–acheteur via WhatsApp, sans intermédiaire
 - **Carte interactive** des surplus agrégés par région officielle du Togo
 - **Zéro barrière d'entrée** — pas de compte, pas d'installation, fonctionne sur mobile avec connexion limitée
+
+---
+
+## 🎯 Pourquoi AgriFlash est différent ?
+
+Contrairement aux plateformes agricoles classiques qui nécessitent une inscription, une application mobile ou un intermédiaire, AgriFlash permet :
+
+- une publication immédiate en moins de 60 secondes ;
+- une mise en relation directe via WhatsApp ;
+- une utilisation sans compte utilisateur ;
+- un fonctionnement sur smartphone même avec une connexion limitée ;
+- une visualisation nationale des surplus agricoles.
+
+L'objectif est de sauver les produits avant leur détérioration, et non simplement de publier des annonces.
 
 ---
 
@@ -258,10 +272,13 @@ Architecture volontairement allégée pour garantir une accessibilité maximale,
 
 ```
 TCCHackDefend2026_AgriFlash/
+├── logo_Agriflash.png  # Logo officiel du projet
 ├── index.html          # Vue principale : dashboard, carte, surplus, statistiques et mise en relation
 ├── add-product.html    # Formulaire de publication (région + ville séparés, validation inline)
 ├── style.css           # Charte graphique unifiée (responsive, animations, modals)
-└── app.js              # Logique JS : données, dashboard, indicateurs, carte, IA, graphiques, filtres
+├── app.js              # Logique JS : données, dashboard, indicateurs, carte, IA, graphiques, filtres
+└── README.md           # Documentation du projet
+
 ```
 
 ---
@@ -277,11 +294,11 @@ TCCHackDefend2026_AgriFlash/
 
 ---
 
-## 👤 Membre de l'équipe
+## 👤 Équipe
 
-| Nom                    | Rôle                                                  | Filière                                                          |
-| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------- |
-| **KODZO Yayra Gracia** | Développeuse — conception, développement, déploiement | Développement Web & Mobile — iPNet Institute of Technology, Lomé |
+| Nom                    | Rôle                                                                                                                          |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **KODZO Yayra Gracia** | Conceptrice, développeuse et déployeuse du projet AgriFlash — Développement Web & Mobile, iPNet Institute of Technology, Lomé |
 
 ---
 
