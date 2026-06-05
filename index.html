@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fr">
   <head>
+    <link rel="icon" type="image/png" href="logo_Agriflash.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AgriFlash 🌱 — Surplus agricoles au Togo</title>
@@ -10,7 +11,6 @@
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
     <style>
-      /* Z-INDEX HIERARCHY */
       :root {
         --z-map: 10;
         --z-navbar: 100;
@@ -26,14 +26,10 @@
       .modal-overlay {
         z-index: var(--z-modal);
       }
-      .notif-toast {
-        z-index: var(--z-toast);
-      }
+      .notif-toast,
       .ia-panel {
         z-index: var(--z-toast);
       }
-
-      /* HAMBURGER MENU */
       .hamburger {
         display: none;
         flex-direction: column;
@@ -78,8 +74,6 @@
           display: flex;
         }
       }
-
-      /* SUPPRESSION BOUTON */
       .btn-supprimer {
         background: var(--rouge-clair);
         color: #a32d2d;
@@ -93,8 +87,6 @@
       .btn-supprimer:hover {
         background: #f7c1c1;
       }
-
-      /* PREFERS REDUCED MOTION */
       @media (prefers-reduced-motion: reduce) {
         * {
           animation: none !important;
@@ -130,40 +122,9 @@
       </div>
     </header>
 
-    <!-- TICKER -->
+    <!-- TICKER — généré dynamiquement par app.js -->
     <div class="ticker" aria-label="Activité en direct" role="marquee">
-      <div class="ticker-inner" id="ticker-inner">
-        <span
-          >🔴 850 kg de tomates disponibles — Agoè, Lomé — risque de perte sous
-          24h</span
-        >
-        <span
-          >🔴 1 200 kg de tomates — Atakpamé — surplus massif à écouler
-          d'urgence</span
-        >
-        <span>🟠 80 kg de piments frais — Kpalimé</span>
-        <span
-          >🔴 120 kg de laitues fraîches — Lomé — se flétrissent
-          rapidement</span
-        >
-        <span>🔴 650 kg de tomates — Dapaong — Savanes</span>
-        <span>🟠 300 kg de mangues mûres — Danyi — risque pourriture 48h</span>
-        <span
-          >🔴 850 kg de tomates disponibles — Agoè, Lomé — risque de perte sous
-          24h</span
-        >
-        <span
-          >🔴 1 200 kg de tomates — Atakpamé — surplus massif à écouler
-          d'urgence</span
-        >
-        <span>🟠 80 kg de piments frais — Kpalimé</span>
-        <span
-          >🔴 120 kg de laitues fraîches — Lomé — se flétrissent
-          rapidement</span
-        >
-        <span>🔴 650 kg de tomates — Dapaong — Savanes</span>
-        <span>🟠 300 kg de mangues mûres — Danyi — risque pourriture 48h</span>
-      </div>
+      <div class="ticker-inner" id="ticker-inner"></div>
     </div>
 
     <!-- HERO -->
@@ -226,6 +187,13 @@
             <div class="dash-label">Régions couvertes</div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- BONUS STATS — Indice AgriFlash, Temps moyen, Top produits -->
+    <section class="bonus-section">
+      <div class="container">
+        <div id="bonus-stats"></div>
       </div>
     </section>
 

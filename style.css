@@ -29,7 +29,7 @@ body {
   background: var(--gris);
 }
 
-/* ---- NAVBAR ---- */
+/* NAVBAR */
 .navbar {
   background: var(--blanc);
   border-bottom: 1px solid #e0e0e0;
@@ -80,7 +80,7 @@ nav a.active {
   background: var(--vert-fonce);
 }
 
-/* ---- TICKER ---- */
+/* TICKER */
 .ticker {
   background: var(--vert-fonce);
   color: #9fe1cb;
@@ -103,7 +103,7 @@ nav a.active {
   }
 }
 
-/* ---- HERO ---- */
+/* HERO */
 .hero {
   background: var(--vert-fonce);
   color: var(--blanc);
@@ -169,13 +169,13 @@ nav a.active {
   border-color: var(--blanc);
 }
 
-/* ---- CONTAINER ---- */
+/* CONTAINER */
 .container {
   max-width: 1100px;
   margin: 0 auto;
 }
 
-/* ---- SECTION HEADERS ---- */
+/* SECTION HEADERS */
 .section-header {
   margin-bottom: 2rem;
 }
@@ -189,7 +189,7 @@ nav a.active {
   font-size: 0.92rem;
 }
 
-/* ---- DASHBOARD D'IMPACT ---- */
+/* DASHBOARD */
 .dashboard-section {
   background: var(--blanc);
   padding: 2.5rem 2rem;
@@ -262,16 +262,81 @@ nav a.active {
 .dash-card.alert .dash-num {
   color: #a32d2d;
 }
-.dash-card.success .dash-num {
-  color: var(--vert-fonce);
-}
 .dash-label {
   font-size: 0.8rem;
   color: var(--texte-muted);
   line-height: 1.3;
 }
 
-/* ---- MAP ---- */
+/* BONUS SECTION */
+.bonus-section {
+  background: var(--blanc);
+  padding: 1.5rem 2rem 2rem;
+  border-bottom: 1px solid #e8e8e8;
+}
+.bonus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.bonus-card {
+  border-radius: var(--radius);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  border: 1px solid #e8e8e8;
+  transition: transform 0.2s;
+}
+.bonus-card:hover {
+  transform: translateY(-2px);
+}
+.bonus-card.indice {
+  background: linear-gradient(135deg, #e1f5ee 0%, #d0f0e5 100%);
+  border-color: #9fe1cb;
+}
+.bonus-card.temps {
+  background: linear-gradient(135deg, #faeeda 0%, #f5e0c0 100%);
+  border-color: #f0c97a;
+}
+.bonus-card.top {
+  background: var(--gris);
+  border-color: #e8e8e8;
+  text-align: left;
+}
+.bonus-icon {
+  font-size: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+.bonus-num {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--vert-fonce);
+  line-height: 1;
+  margin-bottom: 0.4rem;
+}
+.bonus-card.temps .bonus-num {
+  color: var(--orange);
+}
+.bonus-label {
+  font-size: 0.8rem;
+  color: var(--texte-muted);
+  line-height: 1.3;
+}
+.top-item {
+  font-size: 0.88rem;
+  color: var(--texte);
+  padding: 3px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.top-item:last-child {
+  border-bottom: none;
+}
+.top-rang {
+  font-weight: 700;
+  color: var(--vert-fonce);
+  margin-right: 6px;
+}
+
+/* MAP */
 .map-section {
   padding: 3rem 2rem;
   background: var(--blanc);
@@ -284,7 +349,7 @@ nav a.active {
   z-index: 1;
 }
 
-/* ---- IMPACT CHIFFRES ---- */
+/* IMPACT */
 .impact-section {
   background: var(--vert-fonce);
   color: var(--blanc);
@@ -338,7 +403,7 @@ nav a.active {
   line-height: 1.6;
 }
 
-/* ---- CHARTS ---- */
+/* CHARTS */
 .charts-section {
   padding: 3rem 2rem;
   background: var(--gris);
@@ -401,7 +466,7 @@ nav a.active {
   background: #ba7517;
 }
 
-/* ---- LISTE SURPLUS ---- */
+/* LISTE SURPLUS */
 .liste-section {
   padding: 3rem 2rem;
 }
@@ -451,14 +516,14 @@ nav a.active {
   color: #a32d2d;
 }
 
-/* ---- GRID SURPLUS ---- */
+/* GRID SURPLUS */
 .grid-surplus {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.25rem;
 }
 
-/* ---- CARTE SURPLUS ---- */
+/* CARTE SURPLUS */
 .card {
   background: var(--blanc);
   border-radius: var(--radius);
@@ -571,8 +636,21 @@ nav a.active {
 .btn-ia:hover {
   background: #f5d9a0;
 }
+.btn-supprimer {
+  background: var(--rouge-clair);
+  color: #a32d2d;
+  border: 1px solid #f7c1c1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-supprimer:hover {
+  background: #f7c1c1;
+}
 
-/* ---- DEMANDES ---- */
+/* DEMANDES */
 .demandes-section {
   background: var(--blanc);
   padding: 3rem 2rem;
@@ -633,7 +711,7 @@ nav a.active {
   background: var(--vert-fonce);
 }
 
-/* ---- HOW ---- */
+/* HOW */
 .how-section {
   background: var(--blanc);
   padding: 4rem 2rem;
@@ -673,7 +751,7 @@ nav a.active {
   color: var(--vert);
 }
 
-/* ---- FOOTER ---- */
+/* FOOTER */
 .footer {
   background: var(--vert-fonce);
   color: rgba(255, 255, 255, 0.7);
@@ -682,7 +760,7 @@ nav a.active {
   font-size: 0.85rem;
 }
 
-/* ---- MODAL ---- */
+/* MODAL */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -738,8 +816,6 @@ nav a.active {
   margin-top: 1rem;
   cursor: pointer;
 }
-
-/* MODAL SUCCÈS */
 .modal-success-box {
   text-align: center;
 }
@@ -774,7 +850,7 @@ nav a.active {
   font-size: 0.95rem;
 }
 
-/* ---- NOTIFICATION TOAST ---- */
+/* NOTIFICATION TOAST */
 .notif-toast {
   position: fixed;
   bottom: 80px;
@@ -810,7 +886,7 @@ nav a.active {
   color: var(--texte-muted);
 }
 
-/* ---- IA PANEL ---- */
+/* IA PANEL */
 .ia-panel {
   position: fixed;
   bottom: 1rem;
@@ -885,7 +961,7 @@ nav a.active {
   color: var(--orange);
 }
 
-/* ---- FORM PAGE ---- */
+/* FORM PAGE */
 .form-section {
   padding: 3rem 2rem;
   min-height: 80vh;
@@ -938,6 +1014,30 @@ nav a.active {
 .form-group textarea:focus {
   border-color: var(--vert);
 }
+.form-group input.invalid,
+.form-group select.invalid,
+.form-group textarea.invalid {
+  border-color: #a32d2d;
+  background: #fff8f8;
+}
+.form-error {
+  display: block;
+  font-size: 0.82rem;
+  color: #a32d2d;
+  margin-top: 4px;
+  min-height: 1.1em;
+}
+.form-hint {
+  font-size: 0.78rem;
+  color: #999;
+  margin-top: 3px;
+  display: block;
+}
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--gris);
+}
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -986,13 +1086,19 @@ nav a.active {
   font-weight: 700;
 }
 
-/* ---- RESPONSIVE ---- */
+/* RESPONSIVE */
 @media (max-width: 600px) {
   .hero h1 {
     font-size: 1.8rem;
   }
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .bonus-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .bonus-card.top {
+    grid-column: 1/-1;
   }
   .form-row {
     grid-template-columns: 1fr;

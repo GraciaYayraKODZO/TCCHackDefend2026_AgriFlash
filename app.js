@@ -3,7 +3,15 @@
    TCC Hack & Defend 2026
    ========================================= */
 
-/* ---- CONVERSION UNITÉS → KG ---- */
+/* ---- CONVERSION UNITÉS → KG ----
+   Valeurs estimées moyennes — à affiner selon le type de produit dans une version future.
+   kg        : 1 (référence)
+   tonnes    : 1 000 kg (exact)
+   sacs      : ~50 kg (sac standard agricole au Togo)
+   caisses   : ~20 kg (caisse en bois ou plastique standard)
+   régimes   : ~15 kg (régime de plantain ou banane moyen)
+   unités    : ~0.3 kg (estimation générique, variable selon produit)
+   ---------------------------------------- */
 const CONVERSION = {
   kg: 1,
   tonnes: 1000,
@@ -22,30 +30,96 @@ const REGION_COORDS = {
   Savanes: [10.8623, 0.2056],
 };
 
-/* ---- MAPPING VILLE → RÉGION OFFICIELLE ---- */
+/* ---- VILLES PAR RÉGION avec coordonnées ---- */
+const VILLES_PAR_REGION = {
+  Maritime: [
+    { nom: "Lomé", lat: 6.1319, lng: 1.2228 },
+    { nom: "Agoè-Nyivé", lat: 6.1552, lng: 1.205 },
+    { nom: "Tsévié", lat: 6.4253, lng: 1.2133 },
+    { nom: "Vogan", lat: 6.318, lng: 1.535 },
+    { nom: "Tabligbo", lat: 6.5856, lng: 1.5019 },
+    { nom: "Aneho", lat: 6.2289, lng: 1.5967 },
+  ],
+  Plateaux: [
+    { nom: "Atakpamé", lat: 7.5311, lng: 1.1239 },
+    { nom: "Kpalimé", lat: 6.9, lng: 0.63 },
+    { nom: "Badou", lat: 7.5833, lng: 0.6 },
+    { nom: "Agou Nyogbo", lat: 6.9, lng: 0.72 },
+    { nom: "Danyi", lat: 7.2, lng: 0.8 },
+    { nom: "Notsé", lat: 6.9569, lng: 1.1697 },
+  ],
+  Centrale: [
+    { nom: "Sokodé", lat: 8.9833, lng: 1.1333 },
+    { nom: "Blitta", lat: 8.3167, lng: 0.9833 },
+    { nom: "Sotouboua", lat: 8.5667, lng: 0.9833 },
+    { nom: "Tchamba", lat: 9.0333, lng: 1.4167 },
+  ],
+  Kara: [
+    { nom: "Kara", lat: 9.5511, lng: 1.1861 },
+    { nom: "Niamtougou", lat: 9.7667, lng: 1.1 },
+    { nom: "Pagouda", lat: 9.75, lng: 1.35 },
+    { nom: "Kozah", lat: 9.57, lng: 1.2 },
+    { nom: "Bassar", lat: 9.25, lng: 0.7833 },
+  ],
+  Savanes: [
+    { nom: "Dapaong", lat: 10.8623, lng: 0.2056 },
+    { nom: "Cinkassé", lat: 11.002, lng: 0.003 },
+    { nom: "Mango", lat: 10.3667, lng: 0.4667 },
+    { nom: "Tandjouaré", lat: 10.6667, lng: 0.3 },
+  ],
+};
+
+/* ---- MAPPING VILLE → RÉGION (compatibilité ascendante) ---- */
 const VILLE_REGION = {
   Lomé: "Maritime",
+  "Agoè-Nyivé": "Maritime",
   Tsévié: "Maritime",
-  Agoè: "Maritime",
-  Kpalimé: "Plateaux",
+  Vogan: "Maritime",
+  Tabligbo: "Maritime",
+  Aneho: "Maritime",
   Atakpamé: "Plateaux",
+  Kpalimé: "Plateaux",
+  Badou: "Plateaux",
+  "Agou Nyogbo": "Plateaux",
+  Danyi: "Plateaux",
+  Notsé: "Plateaux",
   Sokodé: "Centrale",
+  Blitta: "Centrale",
+  Sotouboua: "Centrale",
+  Tchamba: "Centrale",
   Kara: "Kara",
+  Niamtougou: "Kara",
+  Pagouda: "Kara",
+  Kozah: "Kara",
+  Bassar: "Kara",
   Dapaong: "Savanes",
+  Cinkassé: "Savanes",
+  Mango: "Savanes",
+  Tandjouaré: "Savanes",
+  Agoè: "Maritime",
+  Maritime: "Maritime",
+  Plateaux: "Plateaux",
+  Centrale: "Centrale",
+  Savanes: "Savanes",
 };
 
 function getRegionOfficielle(r) {
   return VILLE_REGION[r] || r;
 }
-
 function getCoordsRegion(region) {
   const off = getRegionOfficielle(region);
   return REGION_COORDS[off] || null;
 }
+function getCoordsVille(ville, region) {
+  const regionOff = getRegionOfficielle(region);
+  const villes = VILLES_PAR_REGION[regionOff] || [];
+  const match = villes.find((v) => v.nom === ville);
+  if (match) return [match.lat, match.lng];
+  return getCoordsRegion(region);
+}
 
-/* ---- DONNÉES SURPLUS (périssables en priorité) ---- */
+/* ---- DONNÉES SURPLUS ---- */
 const surplusData = [
-  // === MARITIME ===
   {
     id: 1,
     emoji: "🍅",
@@ -55,7 +129,7 @@ const surplusData = [
     prixBrut: 382500,
     prix: "450 FCFA/kg",
     region: "Maritime",
-    ville: "Agoè, Lomé",
+    ville: "Agoè-Nyivé",
     urgence: "critique",
     idealPour: "Restaurants / Cantines",
     description:
@@ -76,7 +150,7 @@ const surplusData = [
     prixBrut: 72000,
     prix: "600 FCFA/kg",
     region: "Maritime",
-    ville: "Marché d'Agoè",
+    ville: "Agoè-Nyivé",
     urgence: "critique",
     idealPour: "Restaurants / Hôtels",
     description:
@@ -97,7 +171,7 @@ const surplusData = [
     prixBrut: 140000,
     prix: "700 FCFA/kg",
     region: "Maritime",
-    ville: "Quartier Bè, Lomé",
+    ville: "Lomé",
     urgence: "critique",
     idealPour: "Restaurants / Supermarchés",
     description:
@@ -139,7 +213,7 @@ const surplusData = [
     prixBrut: 32000,
     prix: "800 FCFA/kg",
     region: "Maritime",
-    ville: "Agoè-Nyivé, Lomé",
+    ville: "Agoè-Nyivé",
     urgence: "critique",
     idealPour: "Restaurants / Hôtels",
     description:
@@ -160,7 +234,7 @@ const surplusData = [
     prixBrut: 37500,
     prix: "2 500 FCFA/régime",
     region: "Maritime",
-    ville: "Quartier Bè, Lomé",
+    ville: "Lomé",
     urgence: "urgent",
     idealPour: "Restaurants / Cantines",
     description: "Plantains à maturité idéale. Délai max 48h.",
@@ -171,7 +245,6 @@ const surplusData = [
     lng: 1.228,
     kgNum: 225,
   },
-  // === PLATEAUX ===
   {
     id: 7,
     emoji: "🍅",
@@ -265,7 +338,7 @@ const surplusData = [
     prixBrut: 60000,
     prix: "200 FCFA/kg",
     region: "Plateaux",
-    ville: "Plantation Danyi",
+    ville: "Danyi",
     urgence: "critique",
     idealPour: "Marchés / Revendeurs / Jus",
     description:
@@ -277,7 +350,6 @@ const surplusData = [
     lng: 0.8,
     kgNum: 300,
   },
-  // === CENTRALE ===
   {
     id: 12,
     emoji: "🍅",
@@ -287,7 +359,7 @@ const surplusData = [
     prixBrut: 175000,
     prix: "350 FCFA/kg",
     region: "Centrale",
-    ville: "Marché de Sokodé",
+    ville: "Sokodé",
     urgence: "critique",
     idealPour: "Cantines / Restaurants",
     description:
@@ -308,7 +380,7 @@ const surplusData = [
     prixBrut: 18000,
     prix: "300 FCFA/kg",
     region: "Centrale",
-    ville: "Sokodé centre",
+    ville: "Sokodé",
     urgence: "critique",
     idealPour: "Cantines / Particuliers",
     description:
@@ -340,7 +412,6 @@ const surplusData = [
     lng: 0.98,
     kgNum: 90,
   },
-  // === KARA ===
   {
     id: 15,
     emoji: "🌶️",
@@ -350,7 +421,7 @@ const surplusData = [
     prixBrut: 31500,
     prix: "700 FCFA/kg",
     region: "Kara",
-    ville: "Kara centre",
+    ville: "Kara",
     urgence: "urgent",
     idealPour: "Restaurants / Transformateurs",
     description: "Piments rouges très parfumés, variété locale. Récoltés hier.",
@@ -370,7 +441,7 @@ const surplusData = [
     prixBrut: 60000,
     prix: "500 FCFA/kg",
     region: "Kara",
-    ville: "Village Pagouda",
+    ville: "Pagouda",
     urgence: "urgent",
     idealPour: "Cantines / Marchés",
     description:
@@ -403,7 +474,6 @@ const surplusData = [
     lng: 1.2,
     kgNum: 200,
   },
-  // === SAVANES ===
   {
     id: 18,
     emoji: "🍅",
@@ -455,7 +525,7 @@ const surplusData = [
     prixBrut: 80000,
     prix: "400 FCFA/kg",
     region: "Savanes",
-    ville: "Marché de Dapaong",
+    ville: "Dapaong",
     urgence: "normal",
     idealPour: "Marchés / Revendeurs",
     description:
@@ -469,7 +539,6 @@ const surplusData = [
   },
 ];
 
-/* ---- DONNÉES DEMANDES ---- */
 const demandesData = [
   {
     icon: "🍴",
@@ -532,18 +601,15 @@ const demandesData = [
 /* ---- HELPERS ---- */
 function getTousSurplus() {
   try {
-    const locaux = JSON.parse(
-      localStorage.getItem("agriflash-surplus") || "[]",
-    );
-    return [...surplusData, ...locaux];
+    const l = JSON.parse(localStorage.getItem("agriflash-surplus") || "[]");
+    return [...surplusData, ...l];
   } catch (e) {
     return [...surplusData];
   }
 }
-
-function getBadgeLabel(urgence) {
-  if (urgence === "critique") return "🔴 Critique — &lt; 24h";
-  if (urgence === "urgent") return "🟠 Urgent — &lt; 48h";
+function getBadgeLabel(u) {
+  if (u === "critique") return "🔴 Critique — &lt; 24h";
+  if (u === "urgent") return "🟠 Urgent — &lt; 48h";
   return "🟢 Normal";
 }
 
@@ -568,21 +634,97 @@ function analyserRisque(item) {
   };
 }
 
+/* ---- TOP PRODUITS MENACÉS ---- */
+function getTopProduitsMenaces(tous) {
+  const scores = {};
+  tous.forEach((i) => {
+    const poids = i.urgence === "critique" ? 3 : i.urgence === "urgent" ? 2 : 1;
+    scores[i.produit] = (scores[i.produit] || 0) + poids * (i.kgNum || 0);
+  });
+  return Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([nom], idx) => ({ rang: idx + 1, nom }));
+}
+
+/* ---- INDICE AGRIFLASH ---- */
+function calculerIndice(tous) {
+  const total = tous.length;
+  if (!total) return 0;
+  const critiques = tous.filter((i) => i.urgence === "critique").length;
+  const urgents = tous.filter((i) => i.urgence === "urgent").length;
+  const regions = new Set(tous.map((i) => i.region)).size;
+  const couverture = (regions / 5) * 100;
+  const reactivite =
+    100 - Math.round((critiques / total) * 60 + (urgents / total) * 30);
+  return Math.min(99, Math.round(couverture * 0.4 + reactivite * 0.6));
+}
+
+/* ---- TEMPS MOYEN SAUVETAGE ---- */
+function tempsMoyenSauvetage(tous) {
+  const h = tous.map((i) =>
+    i.urgence === "critique" ? 18 : i.urgence === "urgent" ? 36 : 72,
+  );
+  if (!h.length) return 0;
+  return Math.round(h.reduce((a, b) => a + b, 0) / h.length);
+}
+
 /* ---- DASHBOARD ---- */
 function initDashboard() {
   const tous = getTousSurplus();
-  const critiques = tous.filter((i) => i.urgence === "critique").length;
-  const totalKg = tous.reduce((a, i) => a + (i.kgNum || 0), 0);
-  const totalFcfa = tous.reduce((a, i) => a + (i.prixBrut || 0), 0);
-  const repas = Math.round(totalKg * 2.5);
-  const regions = new Set(tous.map((i) => i.region)).size;
-
   animCount("d-surplus", tous.length, "", 900);
-  animCount("d-critiques", critiques, "", 900);
-  animCount("d-kg", totalKg, " kg", 1200);
-  animCount("d-fcfa", totalFcfa, " FCFA", 1400);
-  animCount("d-repas", repas, "", 1300);
-  animCount("d-regions", regions, "", 800);
+  animCount(
+    "d-critiques",
+    tous.filter((i) => i.urgence === "critique").length,
+    "",
+    900,
+  );
+  animCount(
+    "d-kg",
+    tous.reduce((a, i) => a + (i.kgNum || 0), 0),
+    " kg",
+    1200,
+  );
+  animCount(
+    "d-fcfa",
+    tous.reduce((a, i) => a + (i.prixBrut || 0), 0),
+    " FCFA",
+    1400,
+  );
+  animCount(
+    "d-repas",
+    Math.round(tous.reduce((a, i) => a + (i.kgNum || 0), 0) * 2.5),
+    "",
+    1300,
+  );
+  animCount("d-regions", new Set(tous.map((i) => i.region)).size, "", 800);
+  initBonusStats(tous);
+}
+
+function initBonusStats(tous) {
+  const el = document.getElementById("bonus-stats");
+  if (!el) return;
+  const indice = calculerIndice(tous);
+  const tps = tempsMoyenSauvetage(tous);
+  const top = getTopProduitsMenaces(tous);
+  el.innerHTML = `
+    <div class="bonus-grid">
+      <div class="bonus-card indice">
+        <div class="bonus-icon">🛡️</div>
+        <div class="bonus-num">${indice}%</div>
+        <div class="bonus-label">Indice AgriFlash de réduction des pertes</div>
+      </div>
+      <div class="bonus-card temps">
+        <div class="bonus-icon">⏱️</div>
+        <div class="bonus-num">${tps}h</div>
+        <div class="bonus-label">Temps moyen de sauvetage d'un surplus</div>
+      </div>
+      <div class="bonus-card top">
+        <div class="bonus-icon">⚠️</div>
+        <div class="bonus-label" style="font-weight:700;margin-bottom:8px">Top produits menacés</div>
+        ${top.map((p) => `<div class="top-item"><span class="top-rang">${p.rang}.</span> ${p.nom}</div>`).join("")}
+      </div>
+    </div>`;
 }
 
 function animCount(id, target, suffix, duration) {
@@ -598,12 +740,39 @@ function animCount(id, target, suffix, duration) {
   }, 16);
 }
 
+/* ---- TICKER DYNAMIQUE ---- */
+function genererTickerHTML(tous) {
+  const items = [
+    ...tous.filter((i) => i.urgence === "critique"),
+    ...tous.filter((i) => i.urgence === "urgent"),
+  ];
+  const vus = new Set();
+  const uniques = items.filter((i) => {
+    const key = `${i.produit}|${i.region}`;
+    if (vus.has(key)) return false;
+    vus.add(key);
+    return true;
+  });
+  const spans = uniques
+    .map((i) => {
+      const dot = i.urgence === "critique" ? "🔴" : "🟠";
+      return `<span>${dot} ${i.kgNum} kg de ${i.produit.toLowerCase()} — ${i.ville || i.region} — ${i.urgence === "critique" ? "risque de perte sous 24h" : "à écouler sous 48h"}</span>`;
+    })
+    .join("");
+  return spans + spans; // doublement pour animation infinie
+}
+
+function initTicker() {
+  const inner = document.getElementById("ticker-inner");
+  if (!inner) return;
+  inner.innerHTML = genererTickerHTML(getTousSurplus());
+}
+
 /* ---- CARTE LEAFLET ---- */
 let mapInstance = null;
 
 function initMap() {
   if (!window.L || !document.getElementById("map")) return;
-
   mapInstance = L.map("map", {
     center: [8.0, 1.2],
     zoom: 8,
@@ -614,7 +783,6 @@ function initMap() {
       [11.5, 2.0],
     ],
   });
-
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",
   }).addTo(mapInstance);
@@ -622,12 +790,14 @@ function initMap() {
   const tous = getTousSurplus();
   const regionsMap = {};
   tous.forEach((item) => {
-    const key = item.region;
+    const key = item.region; // toujours région officielle
     if (!regionsMap[key]) {
-      const coords = getCoordsRegion(key) || [item.lat, item.lng];
+      const coords =
+        getCoordsRegion(key) || (item.lat ? [item.lat, item.lng] : null);
+      if (!coords) return;
       regionsMap[key] = {
-        lat: coords ? coords[0] : item.lat,
-        lng: coords ? coords[1] : item.lng,
+        lat: coords[0],
+        lng: coords[1],
         kg: 0,
         count: 0,
         items: [],
@@ -645,7 +815,6 @@ function initMap() {
       : data.items.some((i) => i.urgence === "urgent")
         ? "#ba7517"
         : "#1d9e75";
-
     const marker = L.circleMarker([data.lat, data.lng], {
       radius: Math.min(8 + data.kg / 80, 32),
       fillColor: couleur,
@@ -654,13 +823,9 @@ function initMap() {
       opacity: 1,
       fillOpacity: 0.85,
     }).addTo(mapInstance);
-
-    marker.bindPopup(`
-      <strong>📍 Région ${region}</strong><br/>
-      📦 ${data.count} surplus actif${data.count > 1 ? "s" : ""}<br/>
-      🌍 ${data.kg.toLocaleString("fr-FR")} kg sauvables<br/>
-      ${data.items.map((i) => `• ${i.emoji} ${i.produit} (${i.urgence})`).join("<br/>")}
-    `);
+    marker.bindPopup(
+      `<strong>📍 Région ${region}</strong><br/>📦 ${data.count} surplus actif${data.count > 1 ? "s" : ""}<br/>🌍 ${data.kg.toLocaleString("fr-FR")} kg sauvables<br/>${data.items.map((i) => `• ${i.emoji} ${i.produit} — ${i.ville} (${i.urgence})`).join("<br/>")}`,
+    );
   });
 
   const legend = L.control({ position: "bottomright" });
@@ -668,12 +833,7 @@ function initMap() {
     const div = L.DomUtil.create("div");
     div.style.cssText =
       "background:#fff;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.8;box-shadow:0 2px 8px rgba(0,0,0,0.15)";
-    div.innerHTML = `
-      <strong>Niveau d'urgence</strong><br>
-      <span style="color:#a32d2d">●</span> Critique (&lt; 24h)<br>
-      <span style="color:#ba7517">●</span> Urgent (&lt; 48h)<br>
-      <span style="color:#1d9e75">●</span> Normal
-    `;
+    div.innerHTML = `<strong>Niveau d'urgence</strong><br><span style="color:#a32d2d">●</span> Critique (&lt; 24h)<br><span style="color:#ba7517">●</span> Urgent (&lt; 48h)<br><span style="color:#1d9e75">●</span> Normal`;
     return div;
   };
   legend.addTo(mapInstance);
@@ -702,25 +862,20 @@ function afficherSurplus(liste) {
   const sorted = [...liste].sort(
     (a, b) => (ordre[a.urgence] || 2) - (ordre[b.urgence] || 2),
   );
-
   grid.innerHTML = sorted
     .map((item) => {
       const estLocal = !surplusData.find((s) => s.id === item.id);
-      return `
-    <div class="card" data-id="${item.id}">
+      return `<div class="card" data-id="${item.id}">
       <span class="card-emoji">${item.emoji}</span>
-      <div class="card-header">
-        <span class="card-produit">${item.produit}</span>
-        <span class="badge-urgence ${item.urgence}">${getBadgeLabel(item.urgence)}</span>
-      </div>
+      <div class="card-header"><span class="card-produit">${item.produit}</span><span class="badge-urgence ${item.urgence}">${getBadgeLabel(item.urgence)}</span></div>
       <p class="card-info">📦 ${item.quantite}</p>
-      <p class="card-info">📍 ${item.ville || item.region} — <em>Région ${item.region}</em></p>
+      <p class="card-info">📍 ${item.ville} — <em>Région ${item.region}</em></p>
       <span class="card-ideal">👥 ${item.idealPour}</span>
       <p class="card-prix">${item.prix}</p>
       <div class="card-footer">
         <span class="card-vendeur">👤 ${item.vendeur}</span>
         <div class="card-actions">
-          <button class="btn-ia"      onclick="ouvrirIA(${item.id})">🤖 IA</button>
+          <button class="btn-ia" onclick="ouvrirIA(${item.id})">🤖 IA</button>
           <button class="btn-contact" onclick="ouvrirModal(${item.id})">Contacter</button>
           ${estLocal ? `<button class="btn-supprimer" onclick="supprimerSurplus(${item.id})" title="Supprimer">🗑️</button>` : ""}
         </div>
@@ -734,11 +889,11 @@ function afficherSurplus(liste) {
 function supprimerSurplus(id) {
   if (!confirm("Supprimer ce surplus ?")) return;
   try {
-    const locaux = JSON.parse(
-      localStorage.getItem("agriflash-surplus") || "[]",
+    const l = JSON.parse(localStorage.getItem("agriflash-surplus") || "[]");
+    localStorage.setItem(
+      "agriflash-surplus",
+      JSON.stringify(l.filter((s) => s.id !== id)),
     );
-    const nouveaux = locaux.filter((s) => s.id !== id);
-    localStorage.setItem("agriflash-surplus", JSON.stringify(nouveaux));
   } catch (e) {
     console.error(e);
   }
@@ -746,6 +901,7 @@ function supprimerSurplus(id) {
   initDashboard();
   reinitMap();
   reinitCharts();
+  initTicker();
 }
 
 /* ---- FILTRES ---- */
@@ -754,20 +910,18 @@ function filtrer() {
   const r = document.getElementById("filtre-region")?.value || "";
   const u = document.getElementById("filtre-urgence")?.value || "";
   const c = document.getElementById("filtre-categorie")?.value || "";
-  const tous = getTousSurplus();
   afficherSurplus(
-    tous.filter(
+    getTousSurplus().filter(
       (i) =>
         (i.produit.toLowerCase().includes(s) ||
-          (i.ville || i.region).toLowerCase().includes(s) ||
+          (i.ville || "").toLowerCase().includes(s) ||
           i.region.toLowerCase().includes(s)) &&
-        (!r || i.region === r) &&
+        (!r || i.region === r) && // filtre sur région officielle
         (!u || i.urgence === u) &&
         (!c || i.categorie === c),
     ),
   );
 }
-
 function reinitialiserFiltres() {
   ["search", "filtre-region", "filtre-urgence", "filtre-categorie"].forEach(
     (id) => {
@@ -788,19 +942,14 @@ function ouvrirModal(id) {
   document.getElementById("modal-body").innerHTML = `
     <p class="modal-info">📦 <strong>Quantité :</strong> ${item.quantite}</p>
     <p class="modal-info">💰 <strong>Prix :</strong> ${item.prix}</p>
-    <p class="modal-info">📍 <strong>Lieu :</strong> ${item.ville || item.region} — Région ${item.region}</p>
+    <p class="modal-info">📍 <strong>Lieu :</strong> ${item.ville} — Région ${item.region}</p>
     <p class="modal-info">👥 <strong>Idéal pour :</strong> ${item.idealPour}</p>
     <p class="modal-info">📝 ${item.description}</p>
     <p class="modal-tel">📞 ${item.telephone}</p>
     <p class="modal-info" style="font-size:.85rem;color:#888">Via : ${item.contact}</p>
-    <a class="btn-whatsapp" href="https://wa.me/${tel}" target="_blank"
-       onclick="afficherSucces(${item.id})">
-      💬 Contacter sur WhatsApp
-    </a>
-  `;
+    <a class="btn-whatsapp" href="https://wa.me/${tel}" target="_blank" onclick="afficherSucces(${item.id})">💬 Contacter sur WhatsApp</a>`;
   document.getElementById("modal").style.display = "flex";
 }
-
 function fermerModal() {
   document.getElementById("modal").style.display = "none";
 }
@@ -811,36 +960,28 @@ function afficherSucces(id) {
   if (!item) return;
   const repas = Math.round((item.kgNum || 0) * 2.5);
   document.getElementById("success-impact").innerHTML = `
-    <div class="success-stat">${item.quantite}</div>
-    <div class="success-desc">de ${item.produit.toLowerCase()} potentiellement sauvés du gaspillage</div>
-    <div class="success-stat">${repas > 0 ? repas.toLocaleString("fr-FR") + " repas" : "—"}</div>
-    <div class="success-desc">préservés pour la communauté togolaise</div>
-    <div class="success-stat">${(item.prixBrut || 0).toLocaleString("fr-FR")} FCFA</div>
-    <div class="success-desc">de revenus protégés pour l'agriculteur</div>
-  `;
+    <div class="success-stat">${item.quantite}</div><div class="success-desc">de ${item.produit.toLowerCase()} potentiellement sauvés du gaspillage</div>
+    <div class="success-stat">${repas > 0 ? repas.toLocaleString("fr-FR") + " repas" : "—"}</div><div class="success-desc">préservés pour la communauté togolaise</div>
+    <div class="success-stat">${(item.prixBrut || 0).toLocaleString("fr-FR")} FCFA</div><div class="success-desc">de revenus protégés pour l'agriculteur</div>`;
   fermerModal();
   setTimeout(() => {
     document.getElementById("modal-success").style.display = "flex";
   }, 200);
 }
-
 function fermerModalSuccess() {
   document.getElementById("modal-success").style.display = "none";
 }
 
-/* ---- ANALYSE IA PANEL ---- */
+/* ---- IA PANEL ---- */
 function ouvrirIA(id) {
   const item = getTousSurplus().find((s) => s.id === id);
   if (!item) return;
-  const analyse = analyserRisque(item);
+  const a = analyserRisque(item);
   document.getElementById("ia-content").innerHTML = `
     <p class="ia-produit">Produit analysé : <strong>${item.emoji} ${item.produit}</strong></p>
     <div>Risque de perte estimé</div>
-    <div class="ia-risque ${analyse.niveau}">${analyse.risque}</div>
-    <div class="ia-reco">
-      <strong>Action recommandée :</strong><br>${analyse.recommandation}
-    </div>
-  `;
+    <div class="ia-risque ${a.niveau}">${a.risque}</div>
+    <div class="ia-reco"><strong>Action recommandée :</strong><br>${a.recommandation}</div>`;
   document.getElementById("ia-panel").style.display = "block";
 }
 
@@ -856,19 +997,14 @@ function afficherDemandes() {
       <div class="demande-acheteur">${d.acheteur}</div>
       <div class="demande-produit">${d.produit}</div>
       <div class="demande-region">📍 ${d.region}</div>
-      <button class="btn-repondre"
-        onclick="window.open('https://wa.me/${d.telephone.replace(/\s|\+/g, "")}','_blank')">
-        Répondre →
-      </button>
-    </div>
-  `,
+      <button class="btn-repondre" onclick="window.open('https://wa.me/${d.telephone.replace(/\s|\+/g, "")}','_blank')">Répondre →</button>
+    </div>`,
     )
     .join("");
 }
 
-/* ---- GRAPHIQUES (dynamiques) ---- */
+/* ---- GRAPHIQUES ---- */
 let chartsInstances = {};
-
 function reinitCharts() {
   Object.values(chartsInstances).forEach((c) => {
     try {
@@ -883,11 +1019,35 @@ function initCharts() {
   if (!window.Chart) return;
   const tous = getTousSurplus();
 
-  // 1. Pertes évitées
+  // Plugin mention données simulées
+  const notePlugin = {
+    id: "noteSimulee",
+    afterDraw(chart) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.font = "10px Segoe UI,sans-serif";
+      ctx.fillStyle = "#bbb";
+      ctx.textAlign = "right";
+      ctx.fillText(
+        "⚠ Données simulées à des fins de démonstration.",
+        chart.width - 8,
+        chart.height - 2,
+      );
+      ctx.restore();
+    },
+  };
+
+  const opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+  };
+
   const ctxP = document.getElementById("chartPertes");
   if (ctxP)
     chartsInstances.pertes = new Chart(ctxP, {
       type: "line",
+      plugins: [notePlugin],
       data: {
         labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun"],
         datasets: [
@@ -911,9 +1071,7 @@ function initCharts() {
         ],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        ...opts,
         scales: {
           y: {
             min: 0,
@@ -926,11 +1084,11 @@ function initCharts() {
       },
     });
 
-  // 2. Connexions
   const ctxC = document.getElementById("chartConnexions");
   if (ctxC)
     chartsInstances.connexions = new Chart(ctxC, {
       type: "bar",
+      plugins: [notePlugin],
       data: {
         labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun"],
         datasets: [
@@ -943,9 +1101,7 @@ function initCharts() {
         ],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        ...opts,
         scales: {
           y: {
             ticks: { font: { size: 11 } },
@@ -956,7 +1112,7 @@ function initCharts() {
       },
     });
 
-  // 3. Kg sauvés — calculé depuis données réelles
+  // Kg sauvés — calculé depuis données réelles
   const kgTotal = tous.reduce((a, i) => a + (i.kgNum || 0), 0);
   const kgHebdo = [0.06, 0.11, 0.17, 0.25, 0.35, 0.48, 0.65].map((r) =>
     Math.round(kgTotal * r),
@@ -965,6 +1121,7 @@ function initCharts() {
   if (ctxK)
     chartsInstances.kg = new Chart(ctxK, {
       type: "line",
+      plugins: [notePlugin],
       data: {
         labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
         datasets: [
@@ -980,9 +1137,7 @@ function initCharts() {
         ],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        ...opts,
         scales: {
           y: {
             ticks: { callback: (v) => v + " kg", font: { size: 10 } },
@@ -993,7 +1148,7 @@ function initCharts() {
       },
     });
 
-  // 4. Catégories — depuis données réelles
+  // Catégories — calculé depuis données réelles
   const catLabels = {
     legumes: "Légumes",
     fruits: "Fruits",
@@ -1009,6 +1164,7 @@ function initCharts() {
   if (ctxCat)
     chartsInstances.categories = new Chart(ctxCat, {
       type: "doughnut",
+      plugins: [notePlugin],
       data: {
         labels: Object.keys(cats).map((k) => catLabels[k] || k),
         datasets: [
@@ -1027,8 +1183,7 @@ function initCharts() {
         ],
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        ...opts,
         plugins: {
           legend: {
             position: "right",
@@ -1039,10 +1194,9 @@ function initCharts() {
     });
 }
 
-/* ---- NOTIFICATIONS — depuis données réelles, max 4 ---- */
-let notifIndex = 0;
-let notifsGenerees = [];
-
+/* ---- NOTIFICATIONS ---- */
+let notifIndex = 0,
+  notifsGenerees = [];
 function genererNotifs() {
   const tous = getTousSurplus();
   const notifs = [];
@@ -1073,17 +1227,13 @@ function genererNotifs() {
   });
   return notifs.slice(0, 4);
 }
-
 function showNotif() {
   if (!notifsGenerees.length) return;
-  const n = notifsGenerees[notifIndex % notifsGenerees.length];
-  notifIndex++;
+  const n = notifsGenerees[notifIndex++ % notifsGenerees.length];
   const el = document.getElementById("notif");
-  const tt = document.getElementById("notif-title");
-  const ts = document.getElementById("notif-sub");
-  if (!el || !tt || !ts) return;
-  tt.textContent = n.title;
-  ts.textContent = n.sub;
+  if (!el) return;
+  document.getElementById("notif-title").textContent = n.title;
+  document.getElementById("notif-sub").textContent = n.sub;
   el.className = "notif-toast" + (n.urgent ? " urgent" : "");
   void el.offsetWidth;
   el.classList.add("show");
@@ -1092,12 +1242,12 @@ function showNotif() {
 
 /* ---- MENU MOBILE ---- */
 function initMenuMobile() {
-  const hamburger = document.getElementById("hamburger");
-  const navLinks = document.getElementById("nav-links");
+  const hamburger = document.getElementById("hamburger"),
+    navLinks = document.getElementById("nav-links");
   if (!hamburger || !navLinks) return;
   hamburger.addEventListener("click", () => {
-    const ouvert = navLinks.classList.toggle("nav-open");
-    hamburger.setAttribute("aria-expanded", String(ouvert));
+    const o = navLinks.classList.toggle("nav-open");
+    hamburger.setAttribute("aria-expanded", String(o));
   });
 }
 
@@ -1105,15 +1255,106 @@ function initMenuMobile() {
 function initFormulaire() {
   const form = document.getElementById("form-surplus");
   if (!form) return;
+  const regionSelect = document.getElementById("region");
+  const villeSelect = document.getElementById("ville");
+
+  // Villes dépendantes de la région
+  if (regionSelect && villeSelect) {
+    regionSelect.addEventListener("change", () => {
+      const r = regionSelect.value;
+      villeSelect.innerHTML =
+        '<option value="">-- Choisir une ville --</option>';
+      villeSelect.disabled = !r;
+      if (r && VILLES_PAR_REGION[r]) {
+        VILLES_PAR_REGION[r].forEach((v) => {
+          const opt = document.createElement("option");
+          opt.value = v.nom;
+          opt.textContent = v.nom;
+          villeSelect.appendChild(opt);
+        });
+      }
+    });
+  }
+
+  // Validation inline
+  function validerChamp(id, msgVide) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const showErr = (msg) => {
+      const parent = el.closest(".form-group");
+      if (!parent) return;
+      let e = parent.querySelector(".form-error");
+      if (!e) {
+        e = document.createElement("span");
+        e.className = "form-error";
+        parent.appendChild(e);
+      }
+      e.textContent = msg;
+      if (msg) el.classList.add("invalid");
+      else el.classList.remove("invalid");
+    };
+    el.addEventListener("blur", () => {
+      showErr(!el.value.trim() ? msgVide : "");
+    });
+    el.addEventListener("input", () => {
+      if (el.value.trim()) showErr("");
+    });
+  }
+  validerChamp("nom-produit", "⚠ Nom du produit obligatoire.");
+  validerChamp("categorie", "⚠ Veuillez sélectionner une catégorie.");
+  validerChamp("quantite", "⚠ Quantité obligatoire.");
+  validerChamp("unite", "⚠ Veuillez choisir une unité.");
+  validerChamp("prix", "⚠ Prix obligatoire.");
+  validerChamp("region", "⚠ Veuillez sélectionner une région.");
+  validerChamp("urgence", "⚠ Niveau d'urgence obligatoire.");
+  validerChamp("nom-vendeur", "⚠ Votre nom est obligatoire.");
+  validerChamp("telephone", "⚠ Numéro de téléphone obligatoire.");
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
+    const requis = [
+      "nom-produit",
+      "categorie",
+      "quantite",
+      "unite",
+      "prix",
+      "region",
+      "urgence",
+      "nom-vendeur",
+      "telephone",
+    ];
+    let valide = true;
+    requis.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el || !el.value.trim()) {
+        valide = false;
+        el?.classList.add("invalid");
+        const parent = el?.closest(".form-group");
+        let err = parent?.querySelector(".form-error");
+        if (!err && parent) {
+          err = document.createElement("span");
+          err.className = "form-error";
+          parent.appendChild(err);
+        }
+        if (err) err.textContent = "⚠ Ce champ est obligatoire.";
+      }
+    });
+    if (!valide) {
+      const p = form.querySelector(".invalid");
+      if (p) p.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     const qte = parseFloat(document.getElementById("quantite").value) || 0;
     const unite = document.getElementById("unite").value;
     const kgNum = qte * (CONVERSION[unite] || 1);
-    const regionVal = document.getElementById("region").value;
-    const regionOff = getRegionOfficielle(regionVal);
-    const coords = getCoordsRegion(regionVal);
+    const regionVal = document.getElementById("region").value; // région officielle
+    const villeVal =
+      document.getElementById("ville")?.value ||
+      document.getElementById("localisation")?.value ||
+      regionVal;
+    const coords =
+      getCoordsVille(villeVal, regionVal) || getCoordsRegion(regionVal);
 
     const s = {
       id: Date.now(),
@@ -1121,14 +1362,14 @@ function initFormulaire() {
       produit: document.getElementById("nom-produit").value,
       categorie: document.getElementById("categorie").value,
       quantite: qte + " " + unite,
-      kgNum: kgNum,
+      kgNum,
       prixBrut: parseFloat(document.getElementById("prix").value) || 0,
       prix:
         document.getElementById("prix").value +
         " FCFA/" +
         document.getElementById("prix-unite").value,
-      region: regionOff,
-      ville: document.getElementById("localisation").value || regionVal,
+      region: regionVal, // région officielle séparée
+      ville: villeVal, // ville séparée
       urgence: document.getElementById("urgence").value,
       idealPour: document.getElementById("ideal-pour").value,
       description:
@@ -1139,17 +1380,13 @@ function initFormulaire() {
       lat: coords ? coords[0] : null,
       lng: coords ? coords[1] : null,
     };
-
     try {
-      const existants = JSON.parse(
-        localStorage.getItem("agriflash-surplus") || "[]",
-      );
-      existants.push(s);
-      localStorage.setItem("agriflash-surplus", JSON.stringify(existants));
-    } catch (error) {
-      console.error("Erreur localStorage:", error);
+      const ex = JSON.parse(localStorage.getItem("agriflash-surplus") || "[]");
+      ex.push(s);
+      localStorage.setItem("agriflash-surplus", JSON.stringify(ex));
+    } catch (err) {
+      console.error(err);
     }
-
     form.style.display = "none";
     document.getElementById("success-msg").style.display = "block";
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1158,17 +1395,14 @@ function initFormulaire() {
 
 /* ---- INIT ---- */
 document.addEventListener("DOMContentLoaded", function () {
-  const prefersReduced = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  ).matches;
-
+  const pr = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   initDashboard();
+  initTicker();
   initMap();
   afficherSurplus(getTousSurplus());
   afficherDemandes();
   initMenuMobile();
   setTimeout(initCharts, 300);
-
   document.getElementById("search")?.addEventListener("input", filtrer);
   document.getElementById("filtre-region")?.addEventListener("change", filtrer);
   document
@@ -1180,7 +1414,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("btn-reinit")
     ?.addEventListener("click", reinitialiserFiltres);
-
   document
     .getElementById("modal-close")
     ?.addEventListener("click", fermerModal);
@@ -1195,10 +1428,8 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("ia-close")?.addEventListener("click", () => {
     document.getElementById("ia-panel").style.display = "none";
   });
-
   initFormulaire();
-
-  if (!prefersReduced) {
+  if (!pr) {
     notifsGenerees = genererNotifs();
     setTimeout(() => {
       showNotif();

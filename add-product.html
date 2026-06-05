@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fr">
   <head>
+    <link rel="icon" type="image/png" href="logo_Agriflash.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AgriFlash — Publier un surplus</title>
@@ -55,6 +56,24 @@
           display: flex;
         }
       }
+      /* Validation */
+      .form-group input.invalid,
+      .form-group select.invalid,
+      .form-group textarea.invalid {
+        border-color: #a32d2d;
+        background: #fff8f8;
+      }
+      .form-error {
+        display: block;
+        font-size: 0.82rem;
+        color: #a32d2d;
+        margin-top: 4px;
+        min-height: 1.1em;
+      }
+      select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       @media (prefers-reduced-motion: reduce) {
         * {
           animation: none !important;
@@ -76,9 +95,8 @@
               gap: 8px;
               color: inherit;
             "
+            >🌱 <span>AgriFlash</span></a
           >
-            🌱 <span>AgriFlash</span>
-          </a>
         </div>
         <button
           class="hamburger"
@@ -105,8 +123,8 @@
         </div>
 
         <div id="success-msg" class="success-msg" style="display: none">
-          ✅ Votre surplus a été publié avec succès !
-          <br /><a href="index.html">← Voir tous les surplus</a>
+          ✅ Votre surplus a été publié avec succès !<br />
+          <a href="index.html">← Voir tous les surplus</a>
         </div>
 
         <form id="form-surplus" class="form-card" novalidate>
@@ -183,26 +201,45 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="region">Région *</label>
-            <select id="region" required aria-required="true">
-              <option value="">-- Sélectionner --</option>
-              <option value="Lomé">Maritime — Lomé</option>
-              <option value="Tsévié">Maritime — Tsévié</option>
-              <option value="Kpalimé">Plateaux — Kpalimé</option>
-              <option value="Atakpamé">Plateaux — Atakpamé</option>
-              <option value="Sokodé">Centrale — Sokodé</option>
-              <option value="Kara">Kara — Kara</option>
-              <option value="Dapaong">Savanes — Dapaong</option>
-            </select>
+          <!-- Région + Ville séparés -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="region">Région *</label>
+              <select id="region" required aria-required="true">
+                <option value="">-- Sélectionner --</option>
+                <option value="Maritime">Maritime</option>
+                <option value="Plateaux">Plateaux</option>
+                <option value="Centrale">Centrale</option>
+                <option value="Kara">Kara</option>
+                <option value="Savanes">Savanes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ville">Ville / Localité *</label>
+              <select id="ville" disabled aria-required="true">
+                <option value="">-- Choisir une région d'abord --</option>
+              </select>
+              <span
+                class="form-hint"
+                style="
+                  font-size: 0.78rem;
+                  color: #999;
+                  margin-top: 3px;
+                  display: block;
+                "
+                >Sélectionner la région pour voir les villes</span
+              >
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="localisation">Localisation précise</label>
+            <label for="localisation"
+              >Précision de localisation (optionnel)</label
+            >
             <input
               type="text"
               id="localisation"
-              placeholder="Ex : Marché d'Agoè, village Agou..."
+              placeholder="Ex : Marché d'Agoè, quartier Bè, village Agou..."
             />
           </div>
 
