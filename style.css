@@ -54,6 +54,10 @@ body {
   align-items: center;
   gap: 8px;
 }
+.logo img {
+  height: 32px;
+  width: auto;
+}
 nav {
   display: flex;
   align-items: center;
