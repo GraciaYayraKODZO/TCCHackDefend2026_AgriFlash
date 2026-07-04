@@ -1,480 +1,575 @@
 <!doctype html>
 <html lang="fr">
-  <head>
-    <link rel="icon" type="image/png" href="logo_Agriflash.png" />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgriFlash 🌱 — Surplus agricoles au Togo</title>
-    <link rel="stylesheet" href="style.css" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <style>
-      :root {
-        --z-map: 10;
-        --z-navbar: 100;
-        --z-modal: 200;
-        --z-toast: 300;
-      }
-      #map {
-        z-index: var(--z-map);
-      }
-      .navbar {
-        z-index: var(--z-navbar);
-      }
-      .modal-overlay {
-        z-index: var(--z-modal);
-      }
-      .notif-toast,
-      .ia-panel {
-        z-index: var(--z-toast);
-      }
-      .hamburger {
-        display: none;
-        flex-direction: column;
-        gap: 5px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px;
-      }
-      .hamburger span {
-        display: block;
-        width: 24px;
-        height: 2px;
-        background: var(--vert-fonce);
-        border-radius: 2px;
-        transition: transform 0.2s;
-      }
-      .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-      }
-      @media (max-width: 600px) {
-        .hamburger {
-          display: flex;
-        }
-        .nav-links {
-          display: none;
-          position: absolute;
-          top: 64px;
-          right: 0;
-          left: 0;
-          background: var(--blanc);
-          flex-direction: column;
-          align-items: flex-start;
-          padding: 1rem 1.5rem;
-          border-bottom: 1px solid #e0e0e0;
-          gap: 1rem;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        }
-        .nav-links.nav-open {
-          display: flex;
-        }
-      }
-      .btn-supprimer {
-        background: var(--rouge-clair);
-        color: #a32d2d;
-        border: 1px solid #f7c1c1;
-        padding: 8px 10px;
-        border-radius: 8px;
-        font-size: 0.82rem;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .btn-supprimer:hover {
-        background: #f7c1c1;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation: none !important;
-          transition: none !important;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- NAVBAR -->
-    <header class="navbar">
-      <div class="navbar-inner" style="position: relative">
-        <div class="logo">
-          <img src="logo_Agriflash.png" alt="Logo AgriFlash" />
-          <span>AgriFlash</span>
-        </div>
-        <button
-          class="hamburger"
-          id="hamburger"
-          aria-expanded="false"
-          aria-label="Menu navigation"
-        >
-          <span></span><span></span><span></span>
-        </button>
-        <nav
-          class="nav-links"
-          id="nav-links"
-          role="navigation"
-          aria-label="Navigation principale"
-        >
-          <a href="index.html" class="active">Accueil</a>
-          <a href="add-product.html" class="btn-publier"
-            >+ Publier un surplus</a
-          >
-        </nav>
-      </div>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="favicon_agriflash.png" />
+  <title>AgriFlash — Plateforme agricole au Togo</title>
+  <meta name="description" content="AgriFlash connecte producteurs agricoles et acheteurs pour réduire les pertes post-récolte au Togo. Publiez votre surplus en moins de 60 secondes." />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-    <!-- TICKER — généré dynamiquement par app.js -->
-    <div class="ticker" aria-label="Activité en direct" role="marquee">
-      <div class="ticker-inner" id="ticker-inner"></div>
+<!-- NAVBAR -->
+<header class="navbar" role="banner">
+  <nav class="navbar-inner" aria-label="Navigation principale">
+    <a href="index.html" class="navbar-logo" aria-label="AgriFlash — Accueil">
+      <img src="logo_Agriflash.png" alt="Logo AgriFlash" height="40" width="auto" />
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-links nav-actions">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="nav-links" role="list">
+      <li><a href="#accueil" class="active">Accueil</a></li>
+      <li><a href="#comment">Comment ca marche</a></li>
+      <li><a href="#acheteurs">Qui peut acheter</a></li>
+      <li><a href="#surplus">Surplus</a></li>
+      <li><a href="#apropos">Temoignages</a></li>
+    </ul>
+    <div class="nav-actions" id="nav-actions">
+      <a href="#" class="btn btn-login" aria-label="Se connecter">Connexion</a>
+      <a href="add-product.html" class="btn btn-signup" aria-label="Publier un surplus">Publier</a>
     </div>
+  </nav>
+</header>
 
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-content">
-        <span class="hero-badge">🇹🇬 Fait pour le Togo</span>
-        <h1>
-          Sauvez les produits frais<br /><span class="accent"
-            >avant qu'il soit trop tard</span
-          >
-        </h1>
-        <p>
-          AgriFlash connecte producteurs et acheteurs togolais en moins de 60
-          secondes — pour éviter que tomates, laitues et fruits mûrs ne se
-          perdent chaque jour.
-        </p>
-        <div class="hero-actions">
-          <a href="add-product.html" class="btn-primary">Publier un surplus</a>
-          <a href="#surplus" class="btn-secondary">Voir les disponibles</a>
-        </div>
-      </div>
-    </section>
+<!-- ═══════════════════════════════════════
+     TICKER DYNAMIQUE
+════════════════════════════════════════ -->
+<div class="ticker-bar" id="ticker-bar" aria-label="Annonces en temps réel">
+  <div class="ticker-track" id="ticker-track"></div>
+</div>
 
-    <!-- DASHBOARD D'IMPACT -->
-    <section class="dashboard-section">
-      <div class="container">
-        <div class="dashboard-header">
-          <h2>📊 Impact National — En direct</h2>
-          <span class="live-badge" aria-live="polite">● LIVE</span>
-        </div>
-        <div class="dashboard-grid">
-          <div class="dash-card">
-            <div class="dash-icon">📦</div>
-            <div class="dash-num" id="d-surplus">0</div>
-            <div class="dash-label">Surplus actifs</div>
-          </div>
-          <div class="dash-card alert">
-            <div class="dash-icon">⚠️</div>
-            <div class="dash-num" id="d-critiques">0</div>
-            <div class="dash-label">Surplus critiques</div>
-          </div>
-          <div class="dash-card">
-            <div class="dash-icon">🌍</div>
-            <div class="dash-num" id="d-kg">0</div>
-            <div class="dash-label">Kg sauvables</div>
-          </div>
-          <div class="dash-card success">
-            <div class="dash-icon">💰</div>
-            <div class="dash-num" id="d-fcfa">0</div>
-            <div class="dash-label">FCFA préservables</div>
-          </div>
-          <div class="dash-card">
-            <div class="dash-icon">🍽️</div>
-            <div class="dash-num" id="d-repas">0</div>
-            <div class="dash-label">Repas potentiels</div>
-          </div>
-          <div class="dash-card">
-            <div class="dash-icon">📍</div>
-            <div class="dash-num" id="d-regions">0</div>
-            <div class="dash-label">Régions couvertes</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- BONUS STATS — Indice AgriFlash, Temps moyen, Top produits -->
-    <section class="bonus-section">
-      <div class="container">
-        <div id="bonus-stats"></div>
-      </div>
-    </section>
-
-    <!-- CARTE DU TOGO -->
-    <section class="map-section">
-      <div class="container">
-        <div class="section-header">
-          <h2>📍 Carte des surplus — Togo</h2>
-          <p class="section-sub">
-            Visualisation en temps réel des surplus agricoles périssables sur le
-            territoire togolais
-          </p>
-        </div>
-        <div
-          id="map"
-          role="region"
-          aria-label="Carte des surplus agricoles au Togo"
-        ></div>
-      </div>
-    </section>
-
-    <!-- SECTION IMPACT CHIFFRES -->
-    <section class="impact-section">
-      <div class="container">
-        <h2>Le problème que nous résolvons</h2>
-        <p class="impact-subtitle">
-          Des chiffres officiels qui parlent d'eux-mêmes
-        </p>
-        <div class="impact-grid">
-          <div class="impact-card">
-            <div class="impact-number">42%</div>
-            <div class="impact-label">
-              des tomates perdues en grande saison au Togo
-            </div>
-            <div class="impact-source">
-              Source : Thèse HAL — Solanum lycopersicum au Togo
-            </div>
-          </div>
-          <div class="impact-card">
-            <div class="impact-number">90%</div>
-            <div class="impact-label">
-              de pertes en petite saison lors des pics de surproduction
-            </div>
-            <div class="impact-source">Source : HAL / Université du Togo</div>
-          </div>
-          <div class="impact-card">
-            <div class="impact-number">625 000</div>
-            <div class="impact-label">
-              Togolais en insécurité alimentaire en 2025
-            </div>
-            <div class="impact-source">
-              Source : FAO — Rapport insécurité alimentaire 2025
-            </div>
-          </div>
-          <div class="impact-card">
-            <div class="impact-number">40%</div>
-            <div class="impact-label">
-              du PIB togolais dépend de l'agriculture
-            </div>
-            <div class="impact-source">
-              Source : Finances AO / Conseil National du Crédit
-            </div>
-          </div>
-        </div>
-        <p class="impact-cta">
-          AgriFlash aide producteurs, commerçants et acheteurs à sauver les
-          produits agricoles périssables avant qu'ils ne se détériorent. La
-          plateforme facilite la mise en relation rapide —
-          <strong
-            >avant que les tomates et les légumes frais ne se gâtent.</strong
-          >
-        </p>
-      </div>
-    </section>
-
-    <!-- GRAPHIQUES D'IMPACT -->
-    <section class="charts-section">
-      <div class="container">
-        <div class="section-header">
-          <h2>📈 Graphiques d'impact</h2>
-          <p class="section-sub">
-            Projection sur 6 mois d'utilisation d'AgriFlash
-          </p>
-        </div>
-        <div class="charts-row">
-          <div class="chart-box">
-            <div class="chart-label">
-              Pertes évitées vs. pertes habituelles (%)
-            </div>
-            <div class="chart-legend">
-              <span><span class="leg-dot rouge"></span>Sans AgriFlash</span>
-              <span><span class="leg-dot vert"></span>Avec AgriFlash</span>
-            </div>
-            <div style="position: relative; height: 220px">
-              <canvas id="chartPertes"></canvas>
-            </div>
-          </div>
-          <div class="chart-box">
-            <div class="chart-label">Connexions producteur–acheteur / mois</div>
-            <div class="chart-legend">
-              <span><span class="leg-dot vert-f"></span>Connexions</span>
-            </div>
-            <div style="position: relative; height: 220px">
-              <canvas id="chartConnexions"></canvas>
-            </div>
-          </div>
-        </div>
-        <div class="charts-row" style="margin-top: 1.25rem">
-          <div class="chart-box">
-            <div class="chart-label">
-              Kg sauvés du gaspillage (cumul hebdomadaire)
-            </div>
-            <div class="chart-legend">
-              <span><span class="leg-dot vert"></span>Kg sauvés</span>
-            </div>
-            <div style="position: relative; height: 200px">
-              <canvas id="chartKg"></canvas>
-            </div>
-          </div>
-          <div class="chart-box">
-            <div class="chart-label">Répartition des surplus par catégorie</div>
-            <div style="position: relative; height: 200px">
-              <canvas id="chartCategories"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- LISTE DES SURPLUS -->
-    <section class="liste-section" id="surplus">
-      <div class="container">
-        <div class="liste-header">
-          <h2>Surplus disponibles</h2>
-          <div class="filtres">
-            <input
-              type="text"
-              id="search"
-              placeholder="Rechercher..."
-              aria-label="Rechercher un surplus"
-            />
-            <select id="filtre-categorie" aria-label="Filtrer par catégorie">
-              <option value="">Toutes catégories</option>
-              <option value="legumes">🥬 Légumes</option>
-              <option value="fruits">🍎 Fruits</option>
-              <option value="tubercules">🥔 Tubercules</option>
-              <option value="condiments">🌶️ Condiments</option>
-              <option value="cereales">🌽 Céréales</option>
-            </select>
-            <select id="filtre-region" aria-label="Filtrer par région">
-              <option value="">Toutes les régions</option>
-              <option value="Maritime">Maritime</option>
-              <option value="Plateaux">Plateaux</option>
-              <option value="Centrale">Centrale</option>
-              <option value="Kara">Kara</option>
-              <option value="Savanes">Savanes</option>
-            </select>
-            <select id="filtre-urgence" aria-label="Filtrer par urgence">
-              <option value="">Toutes urgences</option>
-              <option value="critique">🔴 Critique</option>
-              <option value="urgent">🟠 Urgent</option>
-              <option value="normal">🟢 Normal</option>
-            </select>
-            <button id="btn-reinit" class="btn-reinit">↺ Réinitialiser</button>
-          </div>
-        </div>
-        <div class="grid-surplus" id="grid-surplus" role="list"></div>
-      </div>
-    </section>
-
-    <!-- SECTION DEMANDES -->
-    <section class="demandes-section">
-      <div class="container">
-        <div class="section-header">
-          <h2>🛒 Demandes en attente</h2>
-          <p class="section-sub">
-            Des acheteurs recherchent activement ces produits — connectez-vous
-            maintenant
-          </p>
-        </div>
-        <div class="demandes-grid" id="demandes-grid"></div>
-      </div>
-    </section>
-
-    <!-- COMMENT ÇA MARCHE -->
-    <section class="how-section">
-      <div class="container">
-        <h2>Comment ça marche ?</h2>
-        <div class="steps">
-          <div class="step">
-            <div class="step-num">01</div>
-            <h3>Publiez</h3>
-            <p>Le producteur publie son surplus frais en 60 secondes.</p>
-          </div>
-          <div class="step-arrow">→</div>
-          <div class="step">
-            <div class="step-num">02</div>
-            <h3>Matching</h3>
-            <p>Les acheteurs locaux consultent et réservent.</p>
-          </div>
-          <div class="step-arrow">→</div>
-          <div class="step">
-            <div class="step-num">03</div>
-            <h3>Contact</h3>
-            <p>Mise en relation directe. Zéro gaspillage.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <p>
-        AgriFlash 🌱 — TCC Hack &amp; Defend 2026 | "Jeune togolais, code ta
-        nation, défends ton avenir."
+<!-- ═══════════════════════════════════════
+     1. HERO
+════════════════════════════════════════ -->
+<section class="hero" id="accueil" aria-labelledby="hero-title">
+  <!-- Image de fond plein écran -->
+  <div class="hero-bg">
+    <img src="assets/hero/hero2.jpg" alt="Agricultrice togolaise dans une serre" />
+  </div>
+  <div class="hero-inner">
+    <div class="hero-content">
+      <h1 id="hero-title">
+        Sauvez les récoltes<br/>avant qu'elles ne<br/><em>pourrissent.</em>
+      </h1>
+      <p class="hero-lead">
+        AgriFlash connecte producteurs agricoles et acheteurs locaux au Togo
+        en moins de 60 secondes — pour zéro perte post-récolte.
       </p>
-    </footer>
-
-    <!-- MODAL CONTACT -->
-    <div
-      class="modal-overlay"
-      id="modal"
-      style="display: none"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
-      <div class="modal">
-        <button class="modal-close" id="modal-close" aria-label="Fermer">
-          ✕
-        </button>
-        <h3 id="modal-title"></h3>
-        <div id="modal-body"></div>
+      <div class="hero-actions">
+        <a href="add-product.html" class="btn btn-primary btn-lg" id="hero-cta-publish">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Publier un surplus
+        </a>
+        <a href="#surplus" class="btn btn-secondary btn-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Voir les disponibilités
+        </a>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- MODAL SUCCÈS -->
-    <div
-      class="modal-overlay"
-      id="modal-success"
-      style="display: none"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div class="modal modal-success-box">
-        <div class="success-icon">🎉</div>
-        <h3>Mise en relation effectuée !</h3>
-        <div id="success-impact"></div>
-        <button class="btn-close-success" onclick="fermerModalSuccess()">
-          Fermer
-        </button>
+<!-- ═══════════════════════════════════════
+     2. PROBLEM SECTION
+════════════════════════════════════════ -->
+<section class="problem" id="probleme" aria-labelledby="problem-title">
+  <div class="container">
+    <div class="problem-split">
+      <div class="problem-image">
+        <img src="assets/hero/tomatoes-market.png" alt="Marché de tomates fraîches au Togo — surplus invendus" loading="lazy" />
+      </div>
+      <div class="problem-content">
+        <h2 class="section-title" id="problem-title" style="text-align:left">Le problème : des pertes massives chaque jour</h2>
+        <p class="section-subtitle" style="text-align:left;margin-bottom:2rem">Des chiffres officiels qui parlent d'eux-mêmes</p>
+        <div class="problem-stats">
+          <div class="problem-stat">
+            <div class="problem-stat-num orange">42%</div>
+            <p>des tomates perdues en grande saison</p>
+            <cite>Source : Thèse HAL, Université de Lomé</cite>
+          </div>
+          <div class="problem-stat">
+            <div class="problem-stat-num orange">90%</div>
+            <p>de pertes en petite saison</p>
+            <cite>Source : Ministère de l'Agriculture du Togo</cite>
+          </div>
+          <div class="problem-stat">
+            <div class="problem-stat-num">625 000</div>
+            <p>Togolais en insécurité alimentaire</p>
+            <cite>Source : FAO 2025</cite>
+          </div>
+          <div class="problem-stat">
+            <div class="problem-stat-num">40%</div>
+            <p>du PIB togolais dépend de l'agriculture</p>
+            <cite>Source : INSEED / PNDES</cite>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <!-- NOTIFICATION TOAST -->
-    <div class="notif-toast" id="notif" role="status" aria-live="polite">
-      <div class="notif-title" id="notif-title"></div>
-      <div class="notif-sub" id="notif-sub"></div>
+<!-- ═══════════════════════════════════════
+     3. COMMENT CA MARCHE
+════════════════════════════════════════ -->
+<section class="how" id="comment" aria-labelledby="how-title">
+  <div class="container">
+    <h2 class="section-title" id="how-title" style="color:#fff">Comment ca marche ?</h2>
+    <p class="section-subtitle" style="color:rgba(255,255,255,.65)">Un processus simple, rapide et efficace</p>
+    <div class="how-steps" role="list">
+      <article class="how-step" role="listitem">
+        <div class="how-step-img">
+          <img src="assets/steps/step1.jpg" alt="Producteur publiant son surplus" loading="lazy" />
+          <div class="how-step-num">1</div>
+        </div>
+        <div class="how-step-body">
+          <h3>Publier</h3>
+          <p>Le producteur publie son surplus en moins d'une minute, depuis son téléphone.</p>
+        </div>
+      </article>
+      <article class="how-step" role="listitem">
+        <div class="how-step-img">
+          <img src="assets/steps/step2.jpg" alt="Notification d'alerte aux acheteurs" loading="lazy" />
+          <div class="how-step-num">2</div>
+        </div>
+        <div class="how-step-body">
+          <h3>Alerter</h3>
+          <p>Les acheteurs proches reçoivent une notification immédiate pour agir rapidement.</p>
+        </div>
+      </article>
+      <article class="how-step" role="listitem">
+        <div class="how-step-img">
+          <img src="assets/steps/step3.jpg" alt="Connexion directe entre vendeur et acheteur" loading="lazy" />
+          <div class="how-step-num">3</div>
+        </div>
+        <div class="how-step-body">
+          <h3>Connecter</h3>
+          <p>Vendeur et acheteur se connectent directement et négocient rapidement.</p>
+        </div>
+      </article>
+      <article class="how-step" role="listitem">
+        <div class="how-step-img">
+          <img src="assets/steps/step4.jpg" alt="Récoltes vendues et livrées" loading="lazy" />
+          <div class="how-step-num">4</div>
+        </div>
+        <div class="how-step-body">
+          <h3>Sauver</h3>
+          <p>Les récoltes sont vendues, cuisinées et consommées — zéro gaspillage.</p>
+        </div>
+      </article>
     </div>
+  </div>
+</section>
 
-    <!-- ANALYSE IA PANEL -->
-    <div
-      class="ia-panel"
-      id="ia-panel"
-      style="display: none"
-      role="complementary"
-      aria-label="Analyse AgriFlash"
-    >
-      <div class="ia-panel-inner">
-        <button class="ia-close" id="ia-close" aria-label="Fermer l'analyse">
-          ✕
-        </button>
-        <div class="ia-header">🤖 Analyse AgriFlash</div>
-        <div id="ia-content"></div>
+<!-- ═══════════════════════════════════════
+     4. QUI PEUT ACHETER ?
+════════════════════════════════════════ -->
+<section class="buyers" id="acheteurs" aria-labelledby="buyers-title">
+  <div class="container">
+    <h2 class="section-title" id="buyers-title">Qui peut acheter ?</h2>
+    <p class="section-subtitle">12 profils d'acheteurs déjà connectés à AgriFlash</p>
+  </div>
+  <div class="carousel-outer" id="carousel-outer">
+    <!-- Boutons de navigation flottants -->
+    <div class="carousel-nav" aria-hidden="true">
+      <button class="carousel-btn carousel-btn--prev" id="carousel-prev" aria-label="Défiler vers la gauche">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="carousel-btn carousel-btn--next" id="carousel-next" aria-label="Défiler vers la droite">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <!-- Piste de cartes (les 12 originales + 12 clones pour la boucle infinie) -->
+    <div class="carousel-track" id="carousel-track" role="list" aria-label="Profils d'acheteurs">
+      <!-- === ORIGINAUX === -->
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/commercantes.png" alt="Commerçantes de marché" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Commerçantes de marché</h3><p>Approvisionnement rapide en produits frais pour vos étals quotidiens.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/restaurant.png" alt="Restaurateurs" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Restaurateurs</h3><p>Réduisez vos coûts d'ingrédients avec des arrivages locaux en temps réel.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/hotel.png" alt="Hôtels et hébergements" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Hôtels &amp; hébergements</h3><p>Offrez à vos clients des produits de la ferme de qualité premium.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/cantines.jpg" alt="Cantines scolaires" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Cantines scolaires</h3><p>Des repas sains et abordables pour les établissements éducatifs.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/transformateurs.png" alt="Transformateurs agro-alimentaires" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Transformateurs</h3><p>Matières premières agricoles directes pour vos unités de production.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/exportateurs.png" alt="Exportateurs" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Exportateurs</h3><p>Identifiez les volumes disponibles pour vos flux internationaux.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/supermarche.png" alt="Supermarchés et épiceries" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Supermarchés &amp; épiceries</h3><p>Rayons frais locaux à prix attractifs pour votre clientèle.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/revendeuses.png" alt="Revendeuses et détaillantes" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Revendeuses &amp; détaillantes</h3><p>Stocks renouvelés quotidiennement au meilleur prix du marché.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/grossistes.png" alt="Grossistes" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Grossistes</h3><p>Volumes importants disponibles rapidement dans toutes les régions.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/particuliers.png" alt="Particuliers" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Particuliers</h3><p>Des produits frais en direct des producteurs pour toute la famille.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/hopital.png" alt="Hôpitaux et cliniques" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Hôpitaux &amp; cliniques</h3><p>Alimentation saine et nutritive pour les besoins des patients.</p></div>
+      </article>
+      <article class="buyer-card" role="listitem">
+        <div class="buyer-card-img"><img src="assets/carousel/cafeterias.png" alt="Cafétérias et traiteurs" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Cafétérias &amp; traiteurs</h3><p>Optimisez vos marges sur vos événements et réceptions de groupe.</p></div>
+      </article>
+      <!-- === CLONES pour la boucle infinie === -->
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/commercantes.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Commerçantes de marché</h3><p>Approvisionnement rapide en produits frais pour vos étals quotidiens.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/restaurant.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Restaurateurs</h3><p>Réduisez vos coûts d'ingrédients avec des arrivages locaux en temps réel.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/hotel.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Hôtels &amp; hébergements</h3><p>Offrez à vos clients des produits de la ferme de qualité premium.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/cantines.jpg" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Cantines scolaires</h3><p>Des repas sains et abordables pour les établissements éducatifs.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/transformateurs.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Transformateurs</h3><p>Matières premières agricoles directes pour vos unités de production.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/exportateurs.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Exportateurs</h3><p>Identifiez les volumes disponibles pour vos flux internationaux.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/supermarche.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Supermarchés &amp; épiceries</h3><p>Rayons frais locaux à prix attractifs pour votre clientèle.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/revendeuses.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Revendeuses &amp; détaillantes</h3><p>Stocks renouvelés quotidiennement au meilleur prix du marché.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/grossistes.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Grossistes</h3><p>Volumes importants disponibles rapidement dans toutes les régions.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/particuliers.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Particuliers</h3><p>Des produits frais en direct des producteurs pour toute la famille.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/hopital.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Hôpitaux &amp; cliniques</h3><p>Alimentation saine et nutritive pour les besoins des patients.</p></div>
+      </article>
+      <article class="buyer-card" role="presentation" aria-hidden="true">
+        <div class="buyer-card-img"><img src="assets/carousel/cafeterias.png" alt="" loading="lazy" /></div>
+        <div class="buyer-card-body"><h3>Cafétérias &amp; traiteurs</h3><p>Optimisez vos marges sur vos événements et réceptions de groupe.</p></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     5. MAP — Impact & Carte
+════════════════════════════════════════ -->
+<section class="impact" id="impact" aria-labelledby="impact-title">
+  <div class="container">
+    <h2 class="section-title" id="impact-title">Un impact réel partout au Togo</h2>
+    <p class="section-subtitle">Visualisation en temps réel des surplus disponibles</p>
+    <div class="impact-inner">
+      <div class="impact-map-col">
+        <div id="map" role="application" aria-label="Carte des surplus disponibles au Togo"></div>
+        <div class="impact-cta">
+          <a href="#surplus" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/></svg>
+            Voir tous les surplus
+          </a>
+        </div>
+      </div>
+      <div class="impact-stats-col">
+        <div class="impact-stats">
+          <div class="impact-stat-card">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <div class="impact-stat-val" id="stat-actifs">22</div>
+            <div class="impact-stat-lbl">Surplus actifs</div>
+          </div>
+          <div class="impact-stat-card orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            <div class="impact-stat-val orange" id="stat-critiques">8</div>
+            <div class="impact-stat-lbl">Critiques</div>
+          </div>
+          <div class="impact-stat-card">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <div class="impact-stat-val">1 400+</div>
+            <div class="impact-stat-lbl">Acheteurs actifs</div>
+          </div>
+          <div class="impact-stat-card orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <div class="impact-stat-val orange" id="stat-prix-moyen">514 FCFA/kg</div>
+            <div class="impact-stat-lbl">Prix moyen</div>
+          </div>
+          <div class="impact-stat-card">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div class="impact-stat-val" id="stat-regions">5/5</div>
+            <div class="impact-stat-lbl">Régions couvertes</div>
+          </div>
+          <div class="impact-stat-card">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div class="impact-stat-val" id="stat-kg">6 730 kg</div>
+            <div class="impact-stat-lbl">Kg sauvegardés</div>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-    <script src="app.js"></script>
-  </body>
+<!-- ═══════════════════════════════════════
+     6. SURPLUS — Filtres + Grille
+════════════════════════════════════════ -->
+<section class="surplus-section" id="surplus" aria-labelledby="surplus-title">
+  <div class="container">
+    <div class="surplus-header">
+      <div>
+        <h2 class="section-title" id="surplus-title" style="text-align:left;margin-bottom:.25rem">Surplus disponibles</h2>
+        <p style="font-size:.875rem;color:var(--neutral-500)">Toutes les annonces actives — triées par urgence</p>
+      </div>
+      <a href="add-product.html" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Publier un surplus
+      </a>
+    </div>
+    <div class="search-bar-inline" role="search" aria-label="Rechercher des surplus">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="search-input" placeholder="Rechercher par culture, région…" autocomplete="off" aria-label="Recherche" />
+      </div>
+      <div class="search-filters" role="group" aria-label="Filtres par catégorie">
+        <button class="filter-chip active" data-filter="tous"       aria-pressed="true">Tous</button>
+        <button class="filter-chip"        data-filter="légumes"    aria-pressed="false">Légumes</button>
+        <button class="filter-chip"        data-filter="fruits"     aria-pressed="false">Fruits</button>
+        <button class="filter-chip"        data-filter="céréales"   aria-pressed="false">Céréales</button>
+        <button class="filter-chip"        data-filter="tubercules" aria-pressed="false">Tubercules</button>
+        <button class="filter-chip"        data-filter="transformés" aria-pressed="false">Transformés</button>
+      </div>
+      <select class="region-filter" id="region-filter" aria-label="Filtrer par région">
+        <option value="toutes">Toutes les régions</option>
+        <option value="Maritime">Maritime</option>
+        <option value="Plateaux">Plateaux</option>
+        <option value="Centrale">Centrale</option>
+        <option value="Kara">Kara</option>
+        <option value="Savanes">Savanes</option>
+      </select>
+    </div>
+    <div class="surplus-grid" id="surplus-grid" aria-live="polite" aria-label="Liste des surplus"></div>
+    <div class="no-results" id="no-results" style="display:none" aria-live="assertive">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <h3>Aucun surplus trouvé</h3>
+      <p>Essayez un autre terme ou réinitialisez les filtres.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     GRAPHIQUES D'IMPACT — Chart.js
+════════════════════════════════════════ -->
+<section class="charts-section" id="graphiques" aria-labelledby="charts-title">
+  <div class="container">
+    <h2 class="section-title" id="charts-title">Graphiques d'impact</h2>
+    <p class="section-subtitle">L'effet d'AgriFlash sur les pertes post-récolte au Togo</p>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Pertes évitées vs pertes habituelles (6 mois)</h3>
+        <canvas id="chart-pertes"></canvas>
+        <p class="chart-disclaimer">Données simulées à des fins de démonstration.</p>
+      </div>
+      <div class="chart-card">
+        <h3>Connexions producteur–acheteur par mois</h3>
+        <canvas id="chart-connections"></canvas>
+        <p class="chart-disclaimer">Données simulées à des fins de démonstration.</p>
+      </div>
+      <div class="chart-card">
+        <h3>Kilogrammes sauvés sur 7 jours</h3>
+        <canvas id="chart-kgsaved"></canvas>
+        <p class="chart-disclaimer">Données simulées à des fins de démonstration.</p>
+      </div>
+      <div class="chart-card">
+        <h3>Répartition des surplus par catégorie</h3>
+        <canvas id="chart-categories"></canvas>
+        <p class="chart-disclaimer">Données simulées à des fins de démonstration.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     TESTIMONIALS
+════════════════════════════════════════ -->
+<section class="testimonials" id="apropos" aria-labelledby="testimonials-title">
+  <div class="container">
+    <h2 class="section-title" id="testimonials-title">Ils nous font confiance</h2>
+    <p class="section-subtitle">Ce que disent nos utilisateurs</p>
+    <div class="testimonials-grid" role="list">
+      <article class="testimonial-card" role="listitem">
+        <blockquote class="testimonial-quote">Grace à AgriFlash, je ne perds plus mes tomates. Je trouve des acheteurs en moins d'une demi-heure.</blockquote>
+        <footer class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true">KA</div>
+          <div>
+            <div class="testimonial-name">Kossi A.</div>
+            <div class="testimonial-role">Producteur de tomates, Kpalimé</div>
+            <div class="testimonial-stars" aria-label="Note 5 sur 5">
+              <span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span>
+            </div>
+          </div>
+        </footer>
+      </article>
+      <article class="testimonial-card" role="listitem">
+        <blockquote class="testimonial-quote">J'accède aux produits frais à des prix corrects. Tout le monde gagne et le gaspillage diminue.</blockquote>
+        <footer class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true">AS</div>
+          <div>
+            <div class="testimonial-name">Ama S.</div>
+            <div class="testimonial-role">Commercante, Lomé</div>
+            <div class="testimonial-stars" aria-label="Note 5 sur 5">
+              <span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span>
+            </div>
+          </div>
+        </footer>
+      </article>
+      <article class="testimonial-card" role="listitem">
+        <blockquote class="testimonial-quote">AgriFlash est une solution concrète aux pertes alimentaires du Togo. Simple et rapide.</blockquote>
+        <footer class="testimonial-author">
+          <div class="testimonial-avatar" aria-hidden="true">DK</div>
+          <div>
+            <div class="testimonial-name">David K.</div>
+            <div class="testimonial-role">ONG — Sécurité alimentaire, Atakpamé</div>
+            <div class="testimonial-stars" aria-label="Note 5 sur 5">
+              <span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span><span class="star" aria-hidden="true">★</span>
+            </div>
+          </div>
+        </footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     7. CTA
+════════════════════════════════════════ -->
+<section class="cta-section" aria-labelledby="cta-title">
+  <div class="container">
+    <h2 id="cta-title">Rejoignez le mouvement pour réduire<br/>les pertes alimentaires au Togo.</h2>
+    <p>Ensemble, sauvons davantage, nourrissons mieux.</p>
+    <div class="cta-actions">
+      <a href="add-product.html" class="btn btn-primary btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Publier un surplus
+      </a>
+      <a href="#acheteurs" class="btn btn-secondary btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Devenir partenaire
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer" role="contentinfo">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="logo_Agriflash.png" alt="Logo AgriFlash" height="30" width="auto" />
+        <p>Une plateforme numérique agricole pour connecter producteurs et acheteurs au Togo et réduire les pertes post-récolte.</p>
+        <div class="footer-socials" style="margin-top:1rem" aria-label="Réseaux sociaux">
+          <a href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="#" aria-label="Twitter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+          <a href="#" aria-label="WhatsApp"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.44 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8 8a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 15 2 2 0 0 1 22 16.92z"/></svg></a>
+        </div>
+      </div>
+      <nav aria-label="Liens Plateforme">
+        <h4>Plateforme</h4>
+        <ul class="footer-col">
+          <li><a href="#surplus">Surplus disponibles</a></li>
+          <li><a href="#comment">Comment ca marche</a></li>
+          <li><a href="#">Tarifs</a></li>
+          <li><a href="#impact">Impact</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Liens Ressources">
+        <h4>Ressources</h4>
+        <ul class="footer-col">
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Guides d'utilisation</a></li>
+          <li><a href="#">Conditions d'utilisation</a></li>
+          <li><a href="#">Politique de confidentialité</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Liens À propos">
+        <h4>A propos</h4>
+        <ul class="footer-col">
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Partenariats</a></li>
+          <li><a href="#">Notre mission</a></li>
+        </ul>
+        <div style="margin-top:1rem">
+          <a href="mailto:hello@agriflash.tg" style="font-size:.75rem">hello@agriflash.tg</a>
+        </div>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 AgriFlash. Tous droits réservés.</span>
+      <span>Made with love in Togo</span>
+    </div>
+  </div>
+</footer>
+
+<div class="notif-toast" id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+<div class="modal-overlay" id="surplus-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Détail du surplus</h3>
+      <button class="modal-close" id="modal-close" aria-label="Fermer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+  <div class="modal">
+    <div class="success-modal-body">
+      <div class="success-modal-icon" aria-hidden="true">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h3 class="success-modal-title" id="success-modal-title">Mise en relation effectuée avec succès !</h3>
+      <p class="success-modal-text">Ouverture de WhatsApp en cours…</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
 </html>

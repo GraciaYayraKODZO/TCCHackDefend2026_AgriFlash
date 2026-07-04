@@ -1,335 +1,853 @@
 <!doctype html>
 <html lang="fr">
-  <head>
-    <link rel="icon" type="image/png" href="logo_Agriflash.png" />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgriFlash — Publier un surplus</title>
-    <link rel="stylesheet" href="style.css" />
-    <style>
-      :root {
-        --z-navbar: 100;
-      }
-      .navbar {
-        z-index: var(--z-navbar);
-      }
-      .hamburger {
-        display: none;
-        flex-direction: column;
-        gap: 5px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px;
-      }
-      .hamburger span {
-        display: block;
-        width: 24px;
-        height: 2px;
-        background: var(--vert-fonce);
-        border-radius: 2px;
-      }
-      .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-      }
-      @media (max-width: 600px) {
-        .hamburger {
-          display: flex;
-        }
-        .nav-links {
-          display: none;
-          position: absolute;
-          top: 64px;
-          right: 0;
-          left: 0;
-          background: var(--blanc);
-          flex-direction: column;
-          align-items: flex-start;
-          padding: 1rem 1.5rem;
-          border-bottom: 1px solid #e0e0e0;
-          gap: 1rem;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        }
-        .nav-links.nav-open {
-          display: flex;
-        }
-      }
-      /* Validation */
-      .form-group input.invalid,
-      .form-group select.invalid,
-      .form-group textarea.invalid {
-        border-color: #a32d2d;
-        background: #fff8f8;
-      }
-      .form-error {
-        display: block;
-        font-size: 0.82rem;
-        color: #a32d2d;
-        margin-top: 4px;
-        min-height: 1.1em;
-      }
-      select:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation: none !important;
-          transition: none !important;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header class="navbar">
-      <div class="navbar-inner" style="position: relative">
-        <div class="logo">
-          <a
-            href="index.html"
-            style="
-              text-decoration: none;
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              color: inherit;
-            "
-          >
-            <img src="logo_Agriflash.png" alt="Logo AgriFlash" />
-            <span>AgriFlash</span>
-          </a>
-        </div>
-        <button
-          class="hamburger"
-          id="hamburger"
-          aria-expanded="false"
-          aria-label="Menu navigation"
-        >
-          <span></span><span></span><span></span>
-        </button>
-        <nav class="nav-links" id="nav-links" role="navigation">
-          <a href="index.html">← Retour</a>
-        </nav>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="favicon_agriflash.png" />
+  <title>AgriFlash — Publier un surplus</title>
+  <meta name="description" content="Publiez votre surplus agricole et connectez-vous directement aux acheteurs locaux au Togo." />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- AgriFlash styles -->
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Styles propres à la page Publier (V4) ── */
+    .ap-header { background: var(--green-900); color: var(--white); padding: 2.5rem 0 2rem; }
+    .ap-header p { opacity: .75; font-size: var(--fs-sm); margin-top: .35rem; max-width: 520px; }
+    .ap-stepper { display: flex; align-items: center; margin-top: 1.75rem; max-width: 640px; }
+    .ap-step { display: flex; align-items: center; gap: .6rem; flex: 1; position: relative; }
+    .ap-step-circle {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--fs-sm); font-weight: 700; color: rgba(255,255,255,.7);
+      transition: all .25s;
+    }
+    .ap-step-label { font-size: .75rem; font-weight: 600; color: rgba(255,255,255,.55); white-space: nowrap; }
+    .ap-step.active .ap-step-circle { background: var(--orange-600); border-color: var(--orange-600); color: var(--white); }
+    .ap-step.active .ap-step-label  { color: var(--white); }
+    .ap-step.done .ap-step-circle   { background: var(--green-600); border-color: var(--green-600); color: var(--white); }
+    .ap-step:not(:last-child)::after {
+      content: ""; position: absolute; top: 16px; left: calc(50% + 28px); right: calc(-50% + 28px);
+      height: 2px; background: rgba(255,255,255,.2); z-index: 0;
+    }
+    .ap-step.done:not(:last-child)::after { background: var(--green-600); }
+
+    .ap-page { padding: 3rem 0 4rem; }
+    .ap-grid { display: grid; grid-template-columns: 7fr 3fr; gap: 2rem; align-items: start; }
+
+    .ap-card {
+      background: var(--white); border-radius: var(--radius-xl);
+      box-shadow: var(--shadow); border: 1px solid var(--neutral-100);
+      padding: 1.75rem 1.75rem 2rem; margin-bottom: 1.5rem;
+    }
+    .ap-card-title {
+      font-size: var(--fs-base); font-weight: 700; color: var(--green-900);
+      margin-bottom: 1.25rem; padding-bottom: .6rem; border-bottom: 2px solid var(--green-100);
+      display: flex; align-items: center; gap: .55rem;
+    }
+    .ap-card-step-num {
+      width: 24px; height: 24px; border-radius: 50%; background: var(--green-600); color: var(--white);
+      font-size: .7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    /* Cartes de niveau d'urgence sélectionnables */
+    .urgency-options { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin-bottom: 1.25rem; }
+    .urgency-card {
+      position: relative; cursor: pointer; border: 2px solid var(--neutral-300);
+      border-radius: var(--radius-lg); padding: 1rem .75rem; text-align: center;
+      transition: all .18s; background: var(--white);
+    }
+    .urgency-card input { position: absolute; opacity: 0; pointer-events: none; }
+    .urgency-card-icon { font-size: 1.5rem; margin-bottom: .35rem; }
+    .urgency-card-label { font-size: var(--fs-sm); font-weight: 700; color: var(--neutral-900); }
+    .urgency-card-sub { font-size: .7rem; color: var(--neutral-500); margin-top: .15rem; }
+    .urgency-card:hover { border-color: var(--neutral-500); }
+    .urgency-card.selected[data-level="normal"]   { border-color: var(--green-600); background: var(--green-50); }
+    .urgency-card.selected[data-level="urgent"]   { border-color: var(--orange-600); background: var(--orange-100); }
+    .urgency-card.selected[data-level="critique"] { border-color: #dc2626; background: #fde8e8; }
+
+    .gps-readonly { background: var(--neutral-100); color: var(--neutral-500); cursor: not-allowed; }
+
+    /* Sidebar sticky */
+    .ap-sidebar { position: sticky; top: 90px; display: flex; flex-direction: column; gap: 1.25rem; }
+    .ap-side-box {
+      background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--neutral-100);
+      box-shadow: var(--shadow-sm); padding: 1.25rem 1.4rem;
+    }
+    .ap-side-box h4 {
+      font-size: var(--fs-sm); font-weight: 700; color: var(--green-900);
+      margin-bottom: .75rem; display: flex; align-items: center; gap: .45rem;
+    }
+    .ap-side-box ul { display: flex; flex-direction: column; gap: .55rem; }
+    .ap-side-box li { font-size: .8rem; color: var(--neutral-700); line-height: 1.5; display: flex; gap: .5rem; }
+    .ap-side-box li svg { flex-shrink: 0; margin-top: .15rem; color: var(--green-600); }
+    .ap-urgency-guide-row { display: flex; align-items: flex-start; gap: .55rem; font-size: .78rem; color: var(--neutral-700); margin-bottom: .65rem; }
+    .ap-urgency-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: .25rem; flex-shrink: 0; }
+
+    /* Aperçu en direct (mini carte produit) */
+    .ap-preview-card { border: 1px solid var(--neutral-100); border-radius: var(--radius-lg); overflow: hidden; }
+    .ap-preview-img { height: 130px; background: var(--green-100); display: flex; align-items: center; justify-content: center; color: var(--green-500); overflow: hidden; }
+    .ap-preview-img img { width: 100%; height: 100%; object-fit: cover; }
+    .ap-preview-body { padding: .9rem 1rem; }
+    .ap-preview-title { font-size: var(--fs-sm); font-weight: 700; color: var(--neutral-900); margin-bottom: .3rem; }
+    .ap-preview-meta { font-size: .72rem; color: var(--neutral-500); display: flex; flex-direction: column; gap: .2rem; }
+    .ap-preview-price { font-size: var(--fs-base); font-weight: 800; color: var(--green-600); margin-top: .4rem; }
+
+    @media (max-width: 1024px) {
+      .ap-grid { grid-template-columns: 1fr; }
+      .ap-sidebar { position: static; }
+      .ap-stepper { max-width: 100%; }
+      .ap-step-label { display: none; }
+    }
+    @media (max-width: 560px) {
+      .urgency-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════ -->
+<header class="navbar" role="banner">
+  <nav class="navbar-inner" aria-label="Navigation principale">
+    <a href="index.html" class="navbar-logo" aria-label="AgriFlash — Accueil">
+      <img src="logo_Agriflash.png" alt="Logo AgriFlash" height="40" width="auto" />
+    </a>
+
+    <button class="hamburger" id="hamburger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-links nav-actions">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="nav-links" role="list">
+      <li><a href="index.html#accueil">Accueil</a></li>
+      <li><a href="index.html#comment">Comment ça marche</a></li>
+      <li><a href="index.html#acheteurs">Qui peut acheter</a></li>
+      <li><a href="index.html#surplus">Surplus</a></li>
+      <li><a href="index.html#apropos">Témoignages</a></li>
+    </ul>
+
+    <div class="nav-actions" id="nav-actions">
+      <a href="#" class="btn btn-login">Connexion</a>
+      <a href="add-product.html" class="btn btn-signup active">Publier</a>
+    </div>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════════════
+     EN-TÊTE + STEPPER
+════════════════════════════════════════ -->
+<div class="ap-header">
+  <div class="container">
+    <nav aria-label="Fil d'Ariane" style="font-size:.8rem;opacity:.6;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem">
+      <a href="index.html" style="color:inherit">Accueil</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Publier un surplus</span>
+    </nav>
+    <h1 style="font-size:var(--fs-2xl);font-weight:800">Publier un surplus agricole</h1>
+    <p>Décrivez votre récolte et connectez-vous directement aux acheteurs locaux près de chez vous.</p>
+
+    <div class="ap-stepper" id="ap-stepper" aria-label="Étapes de publication">
+      <div class="ap-step active" data-step="1">
+        <div class="ap-step-circle">1</div>
+        <span class="ap-step-label">Produit</span>
       </div>
-    </header>
+      <div class="ap-step" data-step="2">
+        <div class="ap-step-circle">2</div>
+        <span class="ap-step-label">Quantité</span>
+      </div>
+      <div class="ap-step" data-step="3">
+        <div class="ap-step-circle">3</div>
+        <span class="ap-step-label">Localisation</span>
+      </div>
+      <div class="ap-step" data-step="4">
+        <div class="ap-step-circle">4</div>
+        <span class="ap-step-label">Contact</span>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <section class="form-section">
-      <div class="form-container">
-        <div class="form-header">
-          <h1>Publier un surplus</h1>
-          <p>
-            Remplissez ce formulaire en moins de 60 secondes pour connecter vos
-            produits frais aux acheteurs locaux.
-          </p>
-        </div>
+<!-- ═══════════════════════════════════════
+     FORMULAIRE — 70 % / 30 %
+════════════════════════════════════════ -->
+<main class="ap-page" id="main-content">
+  <div class="container">
+    <form class="ap-grid" id="surplus-form" novalidate>
 
-        <div id="success-msg" class="success-msg" style="display: none">
-          ✅ Votre surplus a été publié avec succès !<br />
-          <a href="index.html">← Voir tous les surplus</a>
-        </div>
+      <!-- ── COLONNE FORMULAIRE (70%) ── -->
+      <div class="ap-form-col">
 
-        <form id="form-surplus" class="form-card" novalidate>
-          <div class="form-group">
-            <label for="nom-produit">Nom du produit *</label>
-            <input
-              type="text"
-              id="nom-produit"
-              placeholder="Ex : Tomates, Laitues, Piments..."
-              required
-              aria-required="true"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="categorie">Catégorie *</label>
-            <select id="categorie" required aria-required="true">
-              <option value="">-- Sélectionner --</option>
-              <option value="legumes">🥬 Légumes</option>
-              <option value="fruits">🍎 Fruits</option>
-              <option value="tubercules">🥔 Tubercules</option>
-              <option value="condiments">🌶️ Condiments</option>
-              <option value="cereales">🌽 Céréales</option>
-            </select>
-          </div>
+        <!-- CARTE 1 : Informations produit -->
+        <section class="ap-card" id="card-step-1" data-step-section="1">
+          <h2 class="ap-card-title"><span class="ap-card-step-num">1</span> Informations produit</h2>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="quantite">Quantité *</label>
-              <input
-                type="number"
-                id="quantite"
-                placeholder="Ex : 50"
-                min="1"
-                required
-                aria-required="true"
-              />
-            </div>
-            <div class="form-group">
-              <label for="unite">Unité *</label>
-              <select id="unite" required aria-required="true">
-                <option value="">-- Choisir --</option>
-                <option value="kg">kg</option>
-                <option value="tonnes">tonnes</option>
-                <option value="sacs">sacs (≈ 50 kg)</option>
-                <option value="caisses">caisses (≈ 20 kg)</option>
-                <option value="régimes">régimes (≈ 15 kg)</option>
-                <option value="unités">unités</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="prix">Prix (FCFA) *</label>
-              <input
-                type="number"
-                id="prix"
-                placeholder="Ex : 5000"
-                min="0"
-                required
-                aria-required="true"
-              />
-            </div>
-            <div class="form-group">
-              <label for="prix-unite">Prix par</label>
-              <select id="prix-unite">
-                <option value="kg">kg</option>
-                <option value="sac">sac</option>
-                <option value="caisse">caisse</option>
-                <option value="unité">unité</option>
-                <option value="lot entier">lot entier</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Région + Ville séparés -->
-          <div class="form-row">
-            <div class="form-group">
-              <label for="region">Région *</label>
-              <select id="region" required aria-required="true">
+              <label class="form-label" for="category">Catégorie <span class="required">*</span></label>
+              <select class="form-control" id="category" name="category" required>
                 <option value="">-- Sélectionner --</option>
+                <option value="légumes">Légumes</option>
+                <option value="fruits">Fruits</option>
+                <option value="céréales">Céréales</option>
+                <option value="tubercules">Tubercules</option>
+                <option value="légumineuses">Légumineuses</option>
+                <option value="aviculture">Aviculture</option>
+                <option value="transformés">Transformés</option>
+              </select>
+              <p class="form-error" id="category-error" role="alert">Veuillez sélectionner une catégorie.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="product-name">Produit <span class="required">*</span></label>
+              <select class="form-control" id="product-name" name="product" required aria-describedby="product-error">
+                <option value="">-- Sélectionner un produit --</option>
+                <optgroup label="Légumes" data-cat="légumes">
+                  <option value="Tomates">Tomates</option>
+                  <option value="Piments">Piments</option>
+                  <option value="Aubergines">Aubergines</option>
+                  <option value="Oignons">Oignons</option>
+                  <option value="Gombo">Gombo</option>
+                  <option value="Chou">Chou</option>
+                  <option value="Haricots verts">Haricots verts</option>
+                  <option value="Carottes">Carottes</option>
+                  <option value="Concombres">Concombres</option>
+                </optgroup>
+                <optgroup label="Fruits" data-cat="fruits">
+                  <option value="Mangues">Mangues</option>
+                  <option value="Papayes">Papayes</option>
+                  <option value="Ananas">Ananas</option>
+                  <option value="Bananes">Bananes</option>
+                  <option value="Oranges">Oranges</option>
+                  <option value="Noix de cajou">Noix de cajou</option>
+                </optgroup>
+                <optgroup label="Céréales" data-cat="céréales">
+                  <option value="Maïs">Maïs</option>
+                  <option value="Sorgho">Sorgho</option>
+                  <option value="Mil">Mil</option>
+                  <option value="Riz paddy">Riz paddy</option>
+                </optgroup>
+                <optgroup label="Tubercules" data-cat="tubercules">
+                  <option value="Manioc">Manioc</option>
+                  <option value="Igname">Igname</option>
+                  <option value="Patate douce">Patate douce</option>
+                  <option value="Taro">Taro</option>
+                </optgroup>
+                <optgroup label="Légumineuses" data-cat="légumineuses">
+                  <option value="Niébé">Niébé</option>
+                  <option value="Arachides">Arachides</option>
+                  <option value="Soja">Soja</option>
+                </optgroup>
+                <optgroup label="Aviculture" data-cat="aviculture">
+                  <option value="Oeufs de poule">Oeufs de poule</option>
+                  <option value="Oeufs de caille">Oeufs de caille</option>
+                </optgroup>
+                <optgroup label="Transformés" data-cat="transformés">
+                  <option value="Purée de tomate">Purée de tomate</option>
+                  <option value="Piment en poudre">Piment en poudre</option>
+                  <option value="Jus de fruits">Jus de fruits</option>
+                  <option value="Miel">Miel</option>
+                </optgroup>
+              </select>
+              <p class="form-error" id="product-error" role="alert">Veuillez sélectionner un produit.</p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Niveau d'urgence</label>
+            <div class="urgency-options" role="radiogroup" aria-label="Niveau d'urgence">
+              <label class="urgency-card selected" data-level="normal">
+                <input type="radio" name="urgency" value="normal" checked />
+                <div class="urgency-card-icon" style="color:var(--green-600)">●</div>
+                <div class="urgency-card-label">Normal</div>
+                <div class="urgency-card-sub">3 jours et plus</div>
+              </label>
+              <label class="urgency-card" data-level="urgent">
+                <input type="radio" name="urgency" value="urgent" />
+                <div class="urgency-card-icon" style="color:var(--orange-600)">●</div>
+                <div class="urgency-card-label">Urgent</div>
+                <div class="urgency-card-sub">1 à 2 jours</div>
+              </label>
+              <label class="urgency-card" data-level="critique">
+                <input type="radio" name="urgency" value="critique" />
+                <div class="urgency-card-icon" style="color:#dc2626">●</div>
+                <div class="urgency-card-label">Critique</div>
+                <div class="urgency-card-sub">Moins de 24 h</div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="description">Description (facultatif)</label>
+            <textarea class="form-control" id="description" name="description" rows="3" maxlength="280"
+              placeholder="Ex : Tomates mûres, prêtes à être livrées dès aujourd'hui. Calibre moyen."
+              aria-describedby="desc-count"></textarea>
+            <p class="form-hint" style="text-align:right"><span id="desc-count">0</span>/280 caractères</p>
+          </div>
+        </section>
+
+        <!-- CARTE 2 : Quantité et prix -->
+        <section class="ap-card" id="card-step-2" data-step-section="2">
+          <h2 class="ap-card-title"><span class="ap-card-step-num">2</span> Quantité et prix</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="quantity">Quantité <span class="required">*</span></label>
+              <input type="number" class="form-control" id="quantity" name="quantity" min="1" step="1"
+                placeholder="Ex : 250" required autocomplete="off" aria-describedby="quantity-error quantity-hint" />
+              <p class="form-hint" id="quantity-hint">Doit être supérieure à 0.</p>
+              <p class="form-error" id="quantity-error" role="alert"><span id="quantity-error-text">La quantité doit être supérieure à 0.</span></p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="unit">Unité</label>
+              <select class="form-control" id="unit" name="unit">
+                <option value="kg" selected>Kilogrammes (kg)</option>
+                <option value="t">Tonnes (t)</option>
+                <option value="sacs">Sacs (50 kg)</option>
+                <option value="caisses">Caisses</option>
+                <option value="unité">Unité</option>
+                <option value="régimes">Régimes (bananes)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="price">Prix unitaire (FCFA) <span class="required">*</span></label>
+              <input type="number" class="form-control" id="price" name="price" min="1" max="5000" step="5"
+                placeholder="Ex : 350" required autocomplete="off" aria-describedby="price-error price-hint" />
+              <p class="form-hint" id="price-hint">Prix marché habituel : 150 – 1 500 FCFA.</p>
+              <p class="form-error" id="price-error" role="alert"><span id="price-error-text">Veuillez entrer un prix valide.</span></p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="availability">Disponibilité</label>
+              <select class="form-control" id="availability" name="availability">
+                <option value="immediate" selected>Immédiate</option>
+                <option value="24h">Sous 24 h</option>
+                <option value="48h">Sous 48 h</option>
+                <option value="semaine">Cette semaine</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Photo du produit <span style="font-weight:400;color:var(--neutral-500);font-size:.75rem">(facultatif)</span></label>
+            <div class="photo-upload" id="photo-drop" role="button" tabindex="0" aria-label="Cliquez ou glissez une photo" aria-describedby="photo-hint">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <p>Cliquez ou glissez-déposez une photo</p>
+              <small id="photo-hint">JPG, PNG, WebP — max 5 Mo</small>
+              <input type="file" id="photo-input" name="photo" accept="image/*" class="sr-only" aria-label="Choisir une image" />
+            </div>
+            <div id="photo-preview" style="display:none;margin-top:.75rem;position:relative">
+              <img id="preview-img" src="" alt="Aperçu de la photo" style="width:100%;max-height:200px;object-fit:cover;border-radius:var(--radius-lg);" />
+              <button type="button" id="remove-photo" aria-label="Supprimer la photo"
+                style="position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARTE 3 : Localisation -->
+        <section class="ap-card" id="card-step-3" data-step-section="3">
+          <h2 class="ap-card-title"><span class="ap-card-step-num">3</span> Localisation</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="region">Région <span class="required">*</span></label>
+              <select class="form-control" id="region" name="region" required aria-describedby="region-error">
+                <option value="">-- Sélectionner une région --</option>
                 <option value="Maritime">Maritime</option>
                 <option value="Plateaux">Plateaux</option>
                 <option value="Centrale">Centrale</option>
                 <option value="Kara">Kara</option>
                 <option value="Savanes">Savanes</option>
               </select>
+              <p class="form-error" id="region-error" role="alert">Veuillez sélectionner une région.</p>
             </div>
             <div class="form-group">
-              <label for="ville">Ville / Localité *</label>
-              <select id="ville" disabled aria-required="true">
-                <option value="">-- Choisir une région d'abord --</option>
+              <label class="form-label" for="city">Ville / Village <span class="required">*</span></label>
+              <select class="form-control" id="city" name="city" required disabled aria-describedby="city-hint">
+                <option value="">-- Choisir d'abord une région --</option>
               </select>
-              <span
-                class="form-hint"
-                style="
-                  font-size: 0.78rem;
-                  color: #999;
-                  margin-top: 3px;
-                  display: block;
-                "
-                >Sélectionner la région pour voir les villes</span
-              >
+              <p class="form-hint" id="city-hint">La liste dépend de la région choisie.</p>
+              <p class="form-error" id="city-error" role="alert">Veuillez sélectionner une ville.</p>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="gps-lat">Latitude (auto)</label>
+              <input type="text" class="form-control gps-readonly" id="gps-lat" readonly placeholder="—" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="gps-lng">Longitude (auto)</label>
+              <input type="text" class="form-control gps-readonly" id="gps-lng" readonly placeholder="—" />
+            </div>
+          </div>
+        </section>
+
+        <!-- CARTE 4 : Coordonnées -->
+        <section class="ap-card" id="card-step-4" data-step-section="4">
+          <h2 class="ap-card-title"><span class="ap-card-step-num">4</span> Coordonnées du vendeur</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="seller-name">Nom du producteur <span class="required">*</span></label>
+              <input type="text" class="form-control" id="seller-name" name="seller_name" placeholder="Ex : Kofi Mensah"
+                maxlength="80" required aria-describedby="name-error" />
+              <p class="form-error" id="name-error" role="alert">Veuillez entrer votre nom.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="farm-name">Nom de l'exploitation <span style="font-weight:400;color:var(--neutral-500);font-size:.75rem">(facultatif)</span></label>
+              <input type="text" class="form-control" id="farm-name" name="farm_name" placeholder="Ex : Ferme Agbéko" maxlength="80" />
             </div>
           </div>
 
           <div class="form-group">
-            <label for="localisation"
-              >Précision de localisation (optionnel)</label
-            >
-            <input
-              type="text"
-              id="localisation"
-              placeholder="Ex : Marché d'Agoè, quartier Bè, village Agou..."
-            />
+            <label class="form-label" for="phone">Téléphone (WhatsApp) <span class="required">*</span></label>
+            <input type="tel" class="form-control" id="phone" name="phone" placeholder="+228 9X XX XX XX"
+              pattern="[\+\d\s\-]{8,15}" required aria-describedby="phone-error" />
+            <p class="form-error" id="phone-error" role="alert">Entrez un numéro de téléphone valide.</p>
           </div>
 
-          <div class="form-group">
-            <label for="urgence">Niveau d'urgence *</label>
-            <select id="urgence" required aria-required="true">
-              <option value="">-- Sélectionner --</option>
-              <option value="critique">🔴 Critique — moins de 24h</option>
-              <option value="urgent">🟠 Urgent — moins de 48h</option>
-              <option value="normal">🟢 Normal — quelques jours</option>
-            </select>
+          <div style="border-top:1px solid var(--neutral-100);padding-top:1.5rem;margin-top:.5rem">
+            <p style="font-size:.8rem;color:var(--neutral-500);margin-bottom:1rem;text-align:center">
+              En publiant, vous acceptez les <a href="#" style="color:var(--green-600)">conditions d'utilisation</a> d'AgriFlash.
+            </p>
+            <button type="submit" class="form-submit" id="submit-btn" aria-label="Publier le surplus">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Publier mon surplus maintenant
+            </button>
           </div>
+        </section>
 
-          <div class="form-group">
-            <label for="ideal-pour">Idéal pour (acheteur cible)</label>
-            <select id="ideal-pour">
-              <option value="Restaurants / Cantines">
-                Restaurants / Cantines
-              </option>
-              <option value="Revendeurs / Marchés">Revendeurs / Marchés</option>
-              <option value="Transformateurs">Transformateurs</option>
-              <option value="Hôtels / Supermarchés">
-                Hôtels / Supermarchés
-              </option>
-              <option value="Particuliers">Particuliers</option>
-              <option value="Tous types d'acheteurs">
-                Tous types d'acheteurs
-              </option>
-            </select>
+      </div><!-- /.ap-form-col -->
+
+      <!-- ── COLONNE LATÉRALE STICKY (30%) ── -->
+      <aside class="ap-sidebar">
+
+        <div class="ap-side-box">
+          <h4>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange-600)" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            Conseils pour une publication efficace
+          </h4>
+          <ul>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Ajoutez une photo claire et lumineuse de votre récolte.</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Indiquez un prix réaliste basé sur le marché local.</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Choisissez le bon niveau d'urgence pour être priorisé.</li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Vérifiez votre numéro WhatsApp avant de publier.</li>
+          </ul>
+        </div>
+
+        <div class="ap-side-box">
+          <h4>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            Guide des niveaux d'urgence
+          </h4>
+          <div class="ap-urgency-guide-row"><span class="ap-urgency-dot" style="background:var(--green-600)"></span><span><strong>Normal</strong> — récolte stable, vente sous 3 jours et plus.</span></div>
+          <div class="ap-urgency-guide-row"><span class="ap-urgency-dot" style="background:var(--orange-600)"></span><span><strong>Urgent</strong> — produit périssable, à vendre sous 1 à 2 jours.</span></div>
+          <div class="ap-urgency-guide-row"><span class="ap-urgency-dot" style="background:#dc2626"></span><span><strong>Critique</strong> — risque de perte élevé, vente sous 24 h.</span></div>
+        </div>
+
+        <div class="ap-side-box">
+          <h4>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Aperçu en direct
+          </h4>
+          <div class="ap-preview-card">
+            <div class="ap-preview-img" id="ap-preview-img">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 22c1.25-1.25 2.5-2.5 3.5-4 1-1.5 1.5-3 1.5-5a7 7 0 1 1 14 0c0 2-0.5 3.5-1.5 5S17.25 20.75 16 22"/></svg>
+            </div>
+            <div class="ap-preview-body">
+              <div class="ap-preview-title" id="ap-preview-title">Votre produit</div>
+              <div class="ap-preview-meta">
+                <span id="ap-preview-location">Région, ville</span>
+                <span id="ap-preview-qty">Quantité —</span>
+              </div>
+              <div class="ap-preview-price" id="ap-preview-price">— FCFA</div>
+            </div>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="description">Description (optionnel)</label>
-            <textarea
-              id="description"
-              rows="3"
-              placeholder="Qualité, variété, conditions de stockage, urgence particulière..."
-            ></textarea>
-          </div>
+      </aside>
 
-          <hr class="form-divider" />
-          <p class="form-section-label">Vos coordonnées</p>
+    </form><!-- /surplus-form -->
+  </div>
+</main>
 
-          <div class="form-group">
-            <label for="nom-vendeur">Nom / Prénom *</label>
-            <input
-              type="text"
-              id="nom-vendeur"
-              placeholder="Ex : Kofi Mensah"
-              required
-              aria-required="true"
-            />
-          </div>
+<!-- ═══════════════════════════════════════
+     FOOTER minimal
+════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo" style="padding:1.5rem 0">
+  <div class="footer-inner">
+    <div class="footer-bottom" style="border:none;padding:0">
+      <a href="index.html">
+        <img src="logo_Agriflash.png" alt="AgriFlash" height="28" width="auto" />
+      </a>
+      <span>© 2026 AgriFlash. Tous droits réservés.</span>
+    </div>
+  </div>
+</footer>
 
-          <div class="form-group">
-            <label for="telephone">Numéro de téléphone *</label>
-            <input
-              type="tel"
-              id="telephone"
-              placeholder="Ex : +228 90 00 00 00"
-              required
-              aria-required="true"
-            />
-          </div>
+<!-- Toast container -->
+<div class="notif-toast" id="toast-container" aria-live="assertive" aria-atomic="true"></div>
 
-          <div class="form-group">
-            <label for="moyen-contact">Moyen de contact préféré</label>
-            <select id="moyen-contact">
-              <option value="Appel">Appel téléphonique</option>
-              <option value="WhatsApp">WhatsApp</option>
-              <option value="Les deux">Appel ou WhatsApp</option>
-            </select>
-          </div>
-
-          <button type="submit" class="btn-submit">
-            Publier mon surplus →
-          </button>
-        </form>
+<!-- Modale de confirmation -->
+<div class="modal-overlay" id="success-modal" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+  <div class="modal">
+    <div class="success-modal-body">
+      <div class="success-modal-icon" aria-hidden="true">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       </div>
-    </section>
+      <h3 class="success-modal-title" id="success-modal-title">Surplus publié avec succès !</h3>
+      <p class="success-modal-text">Les acheteurs proches de votre région vont être alertés.</p>
+      <a href="index.html#surplus" class="btn btn-primary" style="justify-content:center;margin-top:1rem" id="success-view-link">
+        Voir mon annonce publiée
+      </a>
+    </div>
+  </div>
+</div>
 
-    <footer class="footer">
-      <p>
-        AgriFlash 🌱 — TCC Hack &amp; Defend 2026 | "Jeune togolais, code ta
-        nation, défends ton avenir."
-      </p>
-    </footer>
+<!-- ═══════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════ -->
+<script>
+/* =============================================
+   AgriFlash — add-product.js (inline) — V4
+   Validation + stepper + ville dépendante + aperçu live
+   ============================================= */
 
-    <script src="app.js"></script>
-  </body>
+// ── Données Région → Ville + coordonnées GPS ──
+const REGION_CITIES = {
+  'Maritime':  ['Lomé', 'Tsévié', 'Aneho', 'Agoè-Nyivé'],
+  'Plateaux':  ['Kpalimé', 'Atakpamé', 'Notsé', 'Agou Nyogbo'],
+  'Centrale':  ['Sokodé', 'Blitta'],
+  'Kara':      ['Kara', 'Pagouda'],
+  'Savanes':   ['Dapaong', 'Cinkassé'],
+};
+const CITY_COORDS = {
+  'Lomé': [6.1375, 1.2123], 'Kpalimé': [6.9003, 0.6307], 'Atakpamé': [7.5309, 1.1270],
+  'Sokodé': [8.9861, 1.1444], 'Kara': [9.5519, 1.1864], 'Dapaong': [10.8631, 0.2081],
+  'Tsévié': [6.4209, 1.2152], 'Aneho': [6.2334, 1.5956], 'Notsé': [6.9587, 1.1744],
+  'Agoè-Nyivé': [6.2158, 1.1971], 'Cinkassé': [10.9916, 0.2303], 'Agou Nyogbo': [6.8833, 0.7500],
+  'Pagouda': [9.7558, 1.3628], 'Blitta': [8.3167, 1.0667],
+};
+
+// ── Hamburger ───────────────────────────────
+const hamburger  = document.getElementById('hamburger');
+const navLinks   = document.getElementById('nav-links');
+const navActions = document.getElementById('nav-actions');
+hamburger.addEventListener('click', () => {
+  const open = hamburger.classList.toggle('open');
+  hamburger.setAttribute('aria-expanded', open);
+  navLinks.classList.toggle('open', open);
+  navActions.classList.toggle('open', open);
+});
+
+// ── Toast helper ─────────────────────────────
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const icons = {
+    success: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    error:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.setAttribute('role', 'alert');
+  t.innerHTML = `${icons[type]}<span class="toast-msg">${msg}</span>`;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 4500);
+}
+
+// ── Stepper : surligne l'étape visible au scroll ─
+const stepSections = document.querySelectorAll('[data-step-section]');
+const stepEls       = document.querySelectorAll('.ap-step');
+const stepObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (!entry.isIntersecting) return;
+    const n = entry.target.dataset.stepSection;
+    stepEls.forEach((s) => {
+      const sn = parseInt(s.dataset.step, 10);
+      s.classList.toggle('active', String(sn) === n);
+      s.classList.toggle('done', sn < parseInt(n, 10));
+    });
+  });
+}, { rootMargin: '-30% 0px -55% 0px' });
+stepSections.forEach((s) => stepObserver.observe(s));
+
+// ── Catégorie → filtre la liste des produits ──
+const categorySel = document.getElementById('category');
+const productSel  = document.getElementById('product-name');
+const allOptgroups = Array.from(productSel.querySelectorAll('optgroup'));
+categorySel.addEventListener('change', () => {
+  const cat = categorySel.value;
+  allOptgroups.forEach((og) => { og.hidden = cat && og.dataset.cat !== cat; });
+  productSel.value = '';
+  updatePreview();
+});
+
+// ── Cartes de niveau d'urgence sélectionnables ──
+const urgencyCards = document.querySelectorAll('.urgency-card');
+urgencyCards.forEach((card) => {
+  card.addEventListener('click', () => {
+    urgencyCards.forEach((c) => c.classList.remove('selected'));
+    card.classList.add('selected');
+    card.querySelector('input').checked = true;
+    updatePreview();
+  });
+});
+
+// ── Région → Ville dépendante + GPS auto ──
+const regionSel = document.getElementById('region');
+const citySel   = document.getElementById('city');
+const gpsLat    = document.getElementById('gps-lat');
+const gpsLng    = document.getElementById('gps-lng');
+
+regionSel.addEventListener('change', () => {
+  const cities = REGION_CITIES[regionSel.value] || [];
+  citySel.innerHTML = cities.length
+    ? `<option value="">-- Sélectionner une ville --</option>` + cities.map((c) => `<option value="${c}">${c}</option>`).join('')
+    : `<option value="">-- Choisir d'abord une région --</option>`;
+  citySel.disabled = !cities.length;
+  gpsLat.value = ''; gpsLng.value = '';
+  validateRegion();
+  updatePreview();
+});
+
+citySel.addEventListener('change', () => {
+  const coords = CITY_COORDS[citySel.value];
+  gpsLat.value = coords ? coords[0].toFixed(4) : '';
+  gpsLng.value = coords ? coords[1].toFixed(4) : '';
+  updatePreview();
+});
+
+// ── Description counter ──────────────────────
+const descTA  = document.getElementById('description');
+const descCnt = document.getElementById('desc-count');
+descTA.addEventListener('input', () => { descCnt.textContent = descTA.value.length; });
+
+// ── Photo upload (clic + drag & drop) ────────
+const photoDrop    = document.getElementById('photo-drop');
+const photoInput   = document.getElementById('photo-input');
+const photoPreview = document.getElementById('photo-preview');
+const previewImg   = document.getElementById('preview-img');
+const removePhoto  = document.getElementById('remove-photo');
+
+photoDrop.addEventListener('click', () => photoInput.click());
+photoDrop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') photoInput.click(); });
+
+photoInput.addEventListener('change', () => {
+  const file = photoInput.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Image trop lourde (max 5 Mo).', 'error');
+    photoInput.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    photoDrop.style.display = 'none';
+    photoPreview.style.display = 'block';
+    document.getElementById('ap-preview-img').innerHTML = `<img src="${e.target.result}" alt="Aperçu" />`;
+  };
+  reader.readAsDataURL(file);
+});
+removePhoto.addEventListener('click', () => {
+  photoInput.value = '';
+  previewImg.src = '';
+  photoDrop.style.display = 'block';
+  photoPreview.style.display = 'none';
+  document.getElementById('ap-preview-img').innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 22c1.25-1.25 2.5-2.5 3.5-4 1-1.5 1.5-3 1.5-5a7 7 0 1 1 14 0c0 2-0.5 3.5-1.5 5S17.25 20.75 16 22"/></svg>`;
+});
+
+photoDrop.addEventListener('dragover',  (e) => { e.preventDefault(); photoDrop.style.borderColor = 'var(--green-600)'; });
+photoDrop.addEventListener('dragleave', ()  => { photoDrop.style.borderColor = ''; });
+photoDrop.addEventListener('drop', (e) => {
+  e.preventDefault(); photoDrop.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(file); photoInput.files = dt.files;
+    photoInput.dispatchEvent(new Event('change'));
+  }
+});
+
+// ── Aperçu en direct ──────────────────────────
+function updatePreview() {
+  const product  = productSel.value || 'Votre produit';
+  const region   = regionSel.value || '';
+  const city     = citySel.value || '';
+  const qty      = document.getElementById('quantity').value;
+  const unit     = document.getElementById('unit').value;
+  const price    = document.getElementById('price').value;
+
+  document.getElementById('ap-preview-title').textContent = product;
+  document.getElementById('ap-preview-location').textContent = (city ? city + ', ' : '') + (region || 'Région, ville');
+  document.getElementById('ap-preview-qty').textContent = qty ? `${qty} ${unit} disponibles` : 'Quantité —';
+  document.getElementById('ap-preview-price').textContent = price ? `${Number(price).toLocaleString('fr-TG')} FCFA / ${unit}` : '— FCFA';
+}
+['product-name','quantity','unit','price'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', updatePreview);
+  document.getElementById(id).addEventListener('change', updatePreview);
+});
+
+// ── Field validation helpers ─────────────────
+function setError(inputId, errorId, msg) {
+  const inp = document.getElementById(inputId);
+  const err = document.getElementById(errorId);
+  inp.classList.add('error'); inp.classList.remove('success');
+  if (msg && document.getElementById(errorId + '-text')) {
+    document.getElementById(errorId + '-text').textContent = msg;
+  }
+  err.classList.add('visible');
+  return false;
+}
+function clearError(inputId, errorId) {
+  const inp = document.getElementById(inputId);
+  const err = document.getElementById(errorId);
+  inp.classList.remove('error'); inp.classList.add('success');
+  err.classList.remove('visible');
+  return true;
+}
+
+document.getElementById('category').addEventListener('change',    validateCategory);
+document.getElementById('product-name').addEventListener('change', validateProduct);
+document.getElementById('quantity').addEventListener('input',      validateQuantity);
+document.getElementById('price').addEventListener('input',         validatePrice);
+document.getElementById('region').addEventListener('change',       validateRegion);
+document.getElementById('city').addEventListener('change',         validateCity);
+document.getElementById('seller-name').addEventListener('input',   validateName);
+document.getElementById('phone').addEventListener('input',         validatePhone);
+
+function validateCategory() {
+  return document.getElementById('category').value
+    ? clearError('category', 'category-error')
+    : setError('category', 'category-error');
+}
+function validateProduct() {
+  return document.getElementById('product-name').value
+    ? clearError('product-name', 'product-error')
+    : setError('product-name', 'product-error');
+}
+function validateQuantity() {
+  const val = parseFloat(document.getElementById('quantity').value);
+  if (isNaN(val) || val <= 0) return setError('quantity', 'quantity-error', 'La quantité saisie doit être supérieure à 0.');
+  if (val > 100000) return setError('quantity', 'quantity-error', 'Quantité irréaliste (max 100 000).');
+  return clearError('quantity', 'quantity-error');
+}
+function validatePrice() {
+  const val = parseFloat(document.getElementById('price').value);
+  if (isNaN(val) || val <= 0) return setError('price', 'price-error', 'Entrez un prix supérieur à 0 FCFA.');
+  if (val > 5000) return setError('price', 'price-error', 'Prix anormalement élevé (max 5 000 FCFA). Vérifiez votre saisie.');
+  return clearError('price', 'price-error');
+}
+function validateRegion() {
+  return document.getElementById('region').value
+    ? clearError('region', 'region-error')
+    : setError('region', 'region-error');
+}
+function validateCity() {
+  return document.getElementById('city').value
+    ? clearError('city', 'city-error')
+    : setError('city', 'city-error');
+}
+function validateName() {
+  const val = document.getElementById('seller-name').value.trim();
+  return val.length >= 2
+    ? clearError('seller-name', 'name-error')
+    : setError('seller-name', 'name-error', 'Le nom doit contenir au moins 2 caractères.');
+}
+function validatePhone() {
+  const val = document.getElementById('phone').value.trim();
+  const re  = /^[\+\d\s\-]{8,15}$/;
+  return re.test(val)
+    ? clearError('phone', 'phone-error')
+    : setError('phone', 'phone-error', 'Entrez un numéro valide (ex : +228 90 12 34 56).');
+}
+
+// ── Form submit ──────────────────────────────
+document.getElementById('surplus-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const checks = [
+    validateCategory(),
+    validateProduct(),
+    validateQuantity(),
+    validatePrice(),
+    validateRegion(),
+    validateCity(),
+    validateName(),
+    validatePhone(),
+  ];
+
+  if (checks.includes(false)) {
+    showToast('Veuillez corriger les erreurs avant de publier.', 'error');
+    const firstErr = document.querySelector('.form-control.error');
+    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  const urgency = document.querySelector('input[name="urgency"]:checked').value;
+
+  const data = {
+    product:     document.getElementById('product-name').value,
+    category:    document.getElementById('category').value,
+    quantity:    parseFloat(document.getElementById('quantity').value),
+    unit:        document.getElementById('unit').value,
+    price:       parseFloat(document.getElementById('price').value),
+    urgency:     urgency,
+    availability: document.getElementById('availability').value,
+    description: document.getElementById('description').value.trim(),
+    region:      document.getElementById('region').value,
+    city:        document.getElementById('city').value.trim(),
+    seller:      document.getElementById('seller-name').value.trim(),
+    farm:        document.getElementById('farm-name').value.trim(),
+    phone:       document.getElementById('phone').value.trim(),
+    photo:       (photoPreview.style.display === 'block' && previewImg.src) ? previewImg.src : null,
+    timestamp:   new Date().toISOString(),
+  };
+
+  // Persist to localStorage (PoC — sans backend)
+  const existing = JSON.parse(localStorage.getItem('agriflash_surplus') || '[]');
+  data.id = Date.now();
+  existing.unshift(data);
+  localStorage.setItem('agriflash_surplus', JSON.stringify(existing));
+
+  // Mémorise l'id pour que la carte Leaflet d'index.html zoome dessus automatiquement
+  sessionStorage.setItem('agriflash_just_published', String(data.id));
+
+  // Modale de confirmation animée
+  const modal = document.getElementById('success-modal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+
+  setTimeout(() => {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    showToast(`Surplus de ${data.quantity} ${data.unit} de ${data.product} publié avec succès ! Retrouvez-le dans la section Surplus de la page d'accueil.`);
+    document.getElementById('surplus-form').reset();
+    document.getElementById('desc-count').textContent = '0';
+    document.querySelectorAll('.form-control').forEach((el) => el.classList.remove('success','error'));
+    photoDrop.style.display = 'block';
+    photoPreview.style.display = 'none';
+    citySel.innerHTML = `<option value="">-- Choisir d'abord une région --</option>`;
+    citySel.disabled = true;
+    gpsLat.value = ''; gpsLng.value = '';
+    urgencyCards.forEach((c) => c.classList.remove('selected'));
+    urgencyCards[0].classList.add('selected');
+    urgencyCards[0].querySelector('input').checked = true;
+    updatePreview();
+    btn.disabled = false;
+  }, 3200);
+});
+
+updatePreview();
+</script>
+</body>
 </html>

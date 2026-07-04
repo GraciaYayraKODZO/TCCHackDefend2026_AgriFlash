@@ -1,1439 +1,1334 @@
-/* =========================================
+/* =============================================
    AgriFlash — app.js
-   TCC Hack & Defend 2026
-   ========================================= */
+   Plateforme AgriTech — Togo
+   Stack : HTML/CSS/JS vanilla + Leaflet.js
+   ============================================= */
 
-/* ---- CONVERSION UNITÉS → KG ----
-   Valeurs estimées moyennes — à affiner selon le type de produit dans une version future.
-   kg        : 1 (référence)
-   tonnes    : 1 000 kg (exact)
-   sacs      : ~50 kg (sac standard agricole au Togo)
-   caisses   : ~20 kg (caisse en bois ou plastique standard)
-   régimes   : ~15 kg (régime de plantain ou banane moyen)
-   unités    : ~0.3 kg (estimation générique, variable selon produit)
-   ---------------------------------------- */
-const CONVERSION = {
-  kg: 1,
-  tonnes: 1000,
-  sacs: 50,
-  caisses: 20,
-  régimes: 15,
-  unités: 0.3,
-};
+'use strict';
 
-/* ---- COORDONNÉES PAR RÉGION OFFICIELLE ---- */
-const REGION_COORDS = {
-  Maritime: [6.1319, 1.2228],
-  Plateaux: [7.5333, 1.1333],
-  Centrale: [8.9833, 1.1333],
-  Kara: [9.5511, 1.1861],
-  Savanes: [10.8623, 0.2056],
-};
-
-/* ---- VILLES PAR RÉGION avec coordonnées ---- */
-const VILLES_PAR_REGION = {
-  Maritime: [
-    { nom: "Lomé", lat: 6.1319, lng: 1.2228 },
-    { nom: "Agoè-Nyivé", lat: 6.1552, lng: 1.205 },
-    { nom: "Tsévié", lat: 6.4253, lng: 1.2133 },
-    { nom: "Vogan", lat: 6.318, lng: 1.535 },
-    { nom: "Tabligbo", lat: 6.5856, lng: 1.5019 },
-    { nom: "Aneho", lat: 6.2289, lng: 1.5967 },
-  ],
-  Plateaux: [
-    { nom: "Atakpamé", lat: 7.5311, lng: 1.1239 },
-    { nom: "Kpalimé", lat: 6.9, lng: 0.63 },
-    { nom: "Badou", lat: 7.5833, lng: 0.6 },
-    { nom: "Agou Nyogbo", lat: 6.9, lng: 0.72 },
-    { nom: "Danyi", lat: 7.2, lng: 0.8 },
-    { nom: "Notsé", lat: 6.9569, lng: 1.1697 },
-  ],
-  Centrale: [
-    { nom: "Sokodé", lat: 8.9833, lng: 1.1333 },
-    { nom: "Blitta", lat: 8.3167, lng: 0.9833 },
-    { nom: "Sotouboua", lat: 8.5667, lng: 0.9833 },
-    { nom: "Tchamba", lat: 9.0333, lng: 1.4167 },
-  ],
-  Kara: [
-    { nom: "Kara", lat: 9.5511, lng: 1.1861 },
-    { nom: "Niamtougou", lat: 9.7667, lng: 1.1 },
-    { nom: "Pagouda", lat: 9.75, lng: 1.35 },
-    { nom: "Kozah", lat: 9.57, lng: 1.2 },
-    { nom: "Bassar", lat: 9.25, lng: 0.7833 },
-  ],
-  Savanes: [
-    { nom: "Dapaong", lat: 10.8623, lng: 0.2056 },
-    { nom: "Cinkassé", lat: 11.002, lng: 0.003 },
-    { nom: "Mango", lat: 10.3667, lng: 0.4667 },
-    { nom: "Tandjouaré", lat: 10.6667, lng: 0.3 },
-  ],
-};
-
-/* ---- MAPPING VILLE → RÉGION (compatibilité ascendante) ---- */
-const VILLE_REGION = {
-  Lomé: "Maritime",
-  "Agoè-Nyivé": "Maritime",
-  Tsévié: "Maritime",
-  Vogan: "Maritime",
-  Tabligbo: "Maritime",
-  Aneho: "Maritime",
-  Atakpamé: "Plateaux",
-  Kpalimé: "Plateaux",
-  Badou: "Plateaux",
-  "Agou Nyogbo": "Plateaux",
-  Danyi: "Plateaux",
-  Notsé: "Plateaux",
-  Sokodé: "Centrale",
-  Blitta: "Centrale",
-  Sotouboua: "Centrale",
-  Tchamba: "Centrale",
-  Kara: "Kara",
-  Niamtougou: "Kara",
-  Pagouda: "Kara",
-  Kozah: "Kara",
-  Bassar: "Kara",
-  Dapaong: "Savanes",
-  Cinkassé: "Savanes",
-  Mango: "Savanes",
-  Tandjouaré: "Savanes",
-  Agoè: "Maritime",
-  Maritime: "Maritime",
-  Plateaux: "Plateaux",
-  Centrale: "Centrale",
-  Savanes: "Savanes",
-};
-
-function getRegionOfficielle(r) {
-  return VILLE_REGION[r] || r;
-}
-function getCoordsRegion(region) {
-  const off = getRegionOfficielle(region);
-  return REGION_COORDS[off] || null;
-}
-function getCoordsVille(ville, region) {
-  const regionOff = getRegionOfficielle(region);
-  const villes = VILLES_PAR_REGION[regionOff] || [];
-  const match = villes.find((v) => v.nom === ville);
-  if (match) return [match.lat, match.lng];
-  return getCoordsRegion(region);
-}
-
-/* ---- DONNÉES SURPLUS ---- */
-const surplusData = [
+// ═══════════════════════════════════════════════
+// 1. DONNÉES DE DÉMONSTRATION — 22 produits
+//    Mapping strict 1:1 avec les images assets/surplus/
+// ═══════════════════════════════════════════════
+const DEMO_SURPLUS = [
+  // ── NIVEAU 1 : CRITIQUE (Ultra-périssables) ──
   {
-    id: 1,
-    emoji: "🍅",
-    produit: "Tomates mûres",
-    categorie: "legumes",
-    quantite: "850 kg",
-    prixBrut: 382500,
-    prix: "450 FCFA/kg",
-    region: "Maritime",
-    ville: "Agoè-Nyivé",
-    urgence: "critique",
-    idealPour: "Restaurants / Cantines",
-    description:
-      "Tomates bien mûres récoltées ce matin. À écouler sous 24h — prix négociable pour grosse quantité.",
-    vendeur: "Koffi Amégah",
-    telephone: "+228 90 00 11 22",
-    contact: "WhatsApp",
-    lat: 6.137,
-    lng: 1.212,
-    kgNum: 850,
+    id: 1001,
+    product:     'Tomates fraîches',
+    category:    'légumes',
+    quantity:    300,
+    unit:        'kg',
+    price:       250,
+    urgency:     'critique',
+    region:      'Plateaux',
+    city:        'Kpalimé',
+    seller:      'Kossi Agbéko',
+    phone:       '+228 90 11 22 33',
+    description: 'Tomates mûres, récoltées hier. Calibre moyen, idéales pour le marché ou la sauce.',
+    photo:       'assets/surplus/tomato.jpg',
+    timestamp:   new Date(Date.now() - 1 * 3600000).toISOString(),
   },
   {
-    id: 2,
-    emoji: "🥬",
-    produit: "Laitues fraîches",
-    categorie: "legumes",
-    quantite: "120 kg",
-    prixBrut: 72000,
-    prix: "600 FCFA/kg",
-    region: "Maritime",
-    ville: "Agoè-Nyivé",
-    urgence: "critique",
-    idealPour: "Restaurants / Hôtels",
-    description:
-      "Laitues coupées hier soir. Se flétrissent rapidement — vente urgente.",
-    vendeur: "Yawa Agbeko",
-    telephone: "+228 97 88 99 00",
-    contact: "WhatsApp",
-    lat: 6.141,
-    lng: 1.218,
-    kgNum: 120,
+    id: 1002,
+    product:     'Piments rouges',
+    category:    'légumes',
+    quantity:    80,
+    unit:        'kg',
+    price:       420,
+    urgency:     'critique',
+    region:      'Kara',
+    city:        'Kara',
+    seller:      'Yawa Kpenu',
+    phone:       '+228 92 77 88 99',
+    description: 'Piments très frais, récoltés ce matin. A vendre impérativement aujourd\'hui.',
+    photo:       'assets/surplus/piment_rouge.jpg',
+    timestamp:   new Date(Date.now() - 0.5 * 3600000).toISOString(),
   },
   {
-    id: 3,
-    emoji: "🍅",
-    produit: "Tomates cerises",
-    categorie: "legumes",
-    quantite: "200 kg",
-    prixBrut: 140000,
-    prix: "700 FCFA/kg",
-    region: "Maritime",
-    ville: "Lomé",
-    urgence: "critique",
-    idealPour: "Restaurants / Supermarchés",
-    description:
-      "Tomates cerises premium. Récoltées hier. Conditionnées en plateaux.",
-    vendeur: "Mawuli Dossou",
-    telephone: "+228 91 55 66 77",
-    contact: "WhatsApp",
-    lat: 6.121,
-    lng: 1.225,
-    kgNum: 200,
+    id: 1003,
+    product:     'Piments verts',
+    category:    'légumes',
+    quantity:    55,
+    unit:        'kg',
+    price:       380,
+    urgency:     'critique',
+    region:      'Maritime',
+    city:        'Lomé',
+    seller:      'Kafui Dossevi',
+    phone:       '+228 93 44 55 61',
+    description: 'Piments verts frais, récoltés tôt ce matin. Calibre export, à écouler sous 24h.',
+    photo:       'assets/surplus/piment_vert.jpg',
+    timestamp:   new Date(Date.now() - 2 * 3600000).toISOString(),
   },
   {
-    id: 4,
-    emoji: "🥒",
-    produit: "Concombres frais",
-    categorie: "legumes",
-    quantite: "3 caisses",
-    prixBrut: 18000,
-    prix: "6 000 FCFA/caisse",
-    region: "Maritime",
-    ville: "Tsévié",
-    urgence: "urgent",
-    idealPour: "Restaurants / Cantines",
-    description:
-      "Concombres bien fermes, sans pesticides. À consommer sous 48h.",
-    vendeur: "Afua Norvor",
-    telephone: "+228 92 33 44 55",
-    contact: "Appel",
-    lat: 6.425,
-    lng: 1.213,
-    kgNum: 60,
+    id: 1004,
+    product:     'Adémè',
+    category:    'légumes',
+    quantity:    40,
+    unit:        'kg',
+    price:       300,
+    urgency:     'critique',
+    region:      'Savanes',
+    city:        'Dapaong',
+    seller:      'Abiba Sawadogo',
+    phone:       '+228 99 21 43 65',
+    description: 'Feuilles de baobab fraîches, récoltées ce matin. Très périssables, à consommer ou transformer rapidement.',
+    photo:       'assets/surplus/ademe.jpg',
+    timestamp:   new Date(Date.now() - 1.5 * 3600000).toISOString(),
   },
   {
-    id: 5,
-    emoji: "🥬",
-    produit: "Épinards frais",
-    categorie: "legumes",
-    quantite: "40 kg",
-    prixBrut: 32000,
-    prix: "800 FCFA/kg",
-    region: "Maritime",
-    ville: "Agoè-Nyivé",
-    urgence: "critique",
-    idealPour: "Restaurants / Hôtels",
-    description:
-      "Épinards cueillis ce matin. Durée de vie max 24h — contact immédiat requis.",
-    vendeur: "Kossi Agbelie",
-    telephone: "+228 90 99 00 11",
-    contact: "WhatsApp",
-    lat: 6.155,
-    lng: 1.205,
-    kgNum: 40,
+    id: 1005,
+    product:     'Gboma',
+    category:    'légumes',
+    quantity:    35,
+    unit:        'kg',
+    price:       280,
+    urgency:     'critique',
+    region:      'Maritime',
+    city:        'Agoè-Nyivé',
+    seller:      'Akosua Mensah',
+    phone:       '+228 90 55 44 33',
+    description: 'Gboma frais récolté ce jour. Idéal pour la sauce gboma. A vendre avant 18h.',
+    photo:       'assets/surplus/Gboma.jpg',
+    timestamp:   new Date(Date.now() - 0.8 * 3600000).toISOString(),
   },
   {
-    id: 6,
-    emoji: "🍌",
-    produit: "Bananes plantain mûres",
-    categorie: "fruits",
-    quantite: "15 régimes",
-    prixBrut: 37500,
-    prix: "2 500 FCFA/régime",
-    region: "Maritime",
-    ville: "Lomé",
-    urgence: "urgent",
-    idealPour: "Restaurants / Cantines",
-    description: "Plantains à maturité idéale. Délai max 48h.",
-    vendeur: "Edzodzi Klutse",
-    telephone: "+228 97 22 33 44",
-    contact: "WhatsApp",
-    lat: 6.118,
-    lng: 1.228,
-    kgNum: 225,
+    id: 1006,
+    product:     'Oignons frais',
+    category:    'légumes',
+    quantity:    200,
+    unit:        'kg',
+    price:       350,
+    urgency:     'critique',
+    region:      'Savanes',
+    city:        'Cinkassé',
+    seller:      'Adama Sawadogo',
+    phone:       '+228 99 23 45 67',
+    description: 'Oignons frais de la récolte du jour. Calibre moyen à gros, très juteux.',
+    photo:       'assets/surplus/oignons.jpg',
+    timestamp:   new Date(Date.now() - 3 * 3600000).toISOString(),
   },
   {
-    id: 7,
-    emoji: "🍅",
-    produit: "Tomates — grande récolte",
-    categorie: "legumes",
-    quantite: "1 200 kg",
-    prixBrut: 480000,
-    prix: "400 FCFA/kg",
-    region: "Plateaux",
-    ville: "Atakpamé",
-    urgence: "critique",
-    idealPour: "Transformateurs / Cantines",
-    description:
-      "Surplus massif après pic de récolte. Risque de perte totale sous 24h.",
-    vendeur: "Edem Kpakpo",
-    telephone: "+228 93 44 55 66",
-    contact: "WhatsApp",
-    lat: 7.531,
-    lng: 1.124,
-    kgNum: 1200,
+    id: 1007,
+    product:     'Gombo frais',
+    category:    'légumes',
+    quantity:    70,
+    unit:        'kg',
+    price:       320,
+    urgency:     'critique',
+    region:      'Centrale',
+    city:        'Sokodé',
+    seller:      'Kofi Atchou',
+    phone:       '+228 93 12 34 56',
+    description: 'Gombo tendre, récolté hier matin. Parfait pour sauces locales, à consommer sous 24h.',
+    photo:       'assets/surplus/gombo.jpg',
+    timestamp:   new Date(Date.now() - 4 * 3600000).toISOString(),
   },
   {
-    id: 8,
-    emoji: "🍅",
-    produit: "Tomates bio — Agou",
-    categorie: "legumes",
-    quantite: "320 kg",
-    prixBrut: 192000,
-    prix: "600 FCFA/kg",
-    region: "Plateaux",
-    ville: "Agou Nyogbo",
-    urgence: "critique",
-    idealPour: "Restaurants / Supermarchés",
-    description:
-      "Tomates cultivées en agriculture naturelle à Agou. Qualité exceptionnelle, récoltées ce matin.",
-    vendeur: "Mawuli Kodjovi",
-    telephone: "+228 93 00 11 22",
-    contact: "WhatsApp",
-    lat: 6.9,
-    lng: 0.72,
-    kgNum: 320,
+    id: 1008,
+    product:     'Aubergine',
+    category:    'légumes',
+    quantity:    60,
+    unit:        'kg',
+    price:       280,
+    urgency:     'urgent',
+    region:      'Plateaux',
+    city:        'Atakpamé',
+    seller:      'Sena Dossou',
+    phone:       '+228 97 34 56 78',
+    description: 'Aubergines fraîches, récoltées avant-hier. Encore fermes, à écouler rapidement.',
+    photo:       'assets/surplus/eggplant.jpg',
+    timestamp:   new Date(Date.now() - 1.5 * 3600000).toISOString(),
+  },
+  // ── NIVEAU 2 : URGENT (Fruits de saison & aviculture) ──
+  {
+    id: 1009,
+    product:     'Mangue',
+    category:    'fruits',
+    quantity:    150,
+    unit:        'unité',
+    price:       300,
+    urgency:     'urgent',
+    region:      'Maritime',
+    city:        'Lomé',
+    seller:      'Efua Dzidzo',
+    phone:       '+228 94 56 78 90',
+    description: 'Mangues mûres, sucrées, calibre export. Idéales pour jus ou consommation directe.',
+    photo:       'assets/surplus/mangue.jpg',
+    timestamp:   new Date(Date.now() - 2 * 3600000).toISOString(),
   },
   {
-    id: 9,
-    emoji: "🌶️",
-    produit: "Piments frais",
-    categorie: "condiments",
-    quantite: "80 kg",
-    prixBrut: 48000,
-    prix: "600 FCFA/kg",
-    region: "Plateaux",
-    ville: "Kpalimé",
-    urgence: "urgent",
-    idealPour: "Restaurants / Revendeurs",
-    description:
-      "Piments locaux bien fermes, production sans traitement chimique.",
-    vendeur: "Akua Mensah",
-    telephone: "+228 93 44 55 88",
-    contact: "WhatsApp",
-    lat: 6.9,
-    lng: 0.63,
-    kgNum: 80,
+    id: 1010,
+    product:     'Ananas pain de sucre',
+    category:    'fruits',
+    quantity:    200,
+    unit:        'kg',
+    price:       220,
+    urgency:     'urgent',
+    region:      'Maritime',
+    city:        'Aneho',
+    seller:      'Grace Tossou',
+    phone:       '+228 90 98 76 54',
+    description: 'Ananas mûrs, très sucrés. Variété locale pain de sucre, parfaite pour la transformation.',
+    photo:       'assets/surplus/ananas.jpg',
+    timestamp:   new Date(Date.now() - 8 * 3600000).toISOString(),
   },
   {
-    id: 10,
-    emoji: "🥦",
-    produit: "Choux frais",
-    categorie: "legumes",
-    quantite: "150 kg",
-    prixBrut: 75000,
-    prix: "500 FCFA/kg",
-    region: "Plateaux",
-    ville: "Atakpamé",
-    urgence: "urgent",
-    idealPour: "Cantines / Marchés",
-    description:
-      "Choux récoltés avant-hier. Encore bien croquants. À écouler rapidement.",
-    vendeur: "Kofi Mensah",
-    telephone: "+228 93 22 11 00",
-    contact: "WhatsApp",
-    lat: 7.525,
-    lng: 1.13,
-    kgNum: 150,
+    id: 1011,
+    product:     'Oeufs de poule',
+    category:    'aviculture',
+    quantity:    500,
+    unit:        'unité',
+    price:       150,
+    urgency:     'urgent',
+    region:      'Plateaux',
+    city:        'Kpalimé',
+    seller:      'Bernard Koffi',
+    phone:       '+228 91 78 34 12',
+    description: 'Oeufs frais de poules élevées en liberté. Collecte du matin, calibre moyen.',
+    photo:       'assets/surplus/egg.jpg',
+    timestamp:   new Date(Date.now() - 5 * 3600000).toISOString(),
   },
   {
-    id: 11,
-    emoji: "🥭",
-    produit: "Mangues mûres",
-    categorie: "fruits",
-    quantite: "300 kg",
-    prixBrut: 60000,
-    prix: "200 FCFA/kg",
-    region: "Plateaux",
-    ville: "Danyi",
-    urgence: "critique",
-    idealPour: "Marchés / Revendeurs / Jus",
-    description:
-      "Mangues mûres, sucrées, récoltées ce matin. Risque de pourriture sous 48h.",
-    vendeur: "Ablavi Agbeka",
-    telephone: "+228 93 77 11 22",
-    contact: "Appel",
-    lat: 7.2,
-    lng: 0.8,
-    kgNum: 300,
+    id: 1012,
+    product:     'Oeufs de caille',
+    category:    'aviculture',
+    quantity:    200,
+    unit:        'unité',
+    price:       500,
+    urgency:     'urgent',
+    region:      'Maritime',
+    city:        'Lomé',
+    seller:      'Henriette Adom',
+    phone:       '+228 90 65 43 21',
+    description: 'Oeufs de caille frais, production artisanale de Lomé. Idéaux pour restauration.',
+    photo:       'assets/surplus/caille_egg.jpg',
+    timestamp:   new Date(Date.now() - 6 * 3600000).toISOString(),
+  },
+  // ── NIVEAU 3 : NORMAL (Cultures vivrières) ──
+  {
+    id: 1013,
+    product:     'Mais frais',
+    category:    'céréales',
+    quantity:    500,
+    unit:        'kg',
+    price:       180,
+    urgency:     'normal',
+    region:      'Maritime',
+    city:        'Tsévié',
+    seller:      'Ama Mensah',
+    phone:       '+228 91 44 55 66',
+    description: 'Mais frais de saison, bien égréné. Idéal pour akpan, bouillie ou consommation directe.',
+    photo:       'assets/surplus/mais_frais.jpg',
+    timestamp:   new Date(Date.now() - 10 * 3600000).toISOString(),
   },
   {
-    id: 12,
-    emoji: "🍅",
-    produit: "Tomates mûres",
-    categorie: "legumes",
-    quantite: "500 kg",
-    prixBrut: 175000,
-    prix: "350 FCFA/kg",
-    region: "Centrale",
-    ville: "Sokodé",
-    urgence: "critique",
-    idealPour: "Cantines / Restaurants",
-    description:
-      "Tomates de saison, très mûres. Producteur cherche acheteur d'urgence.",
-    vendeur: "Moussa Boukari",
-    telephone: "+228 99 11 22 33",
-    contact: "Appel",
-    lat: 8.982,
-    lng: 1.145,
-    kgNum: 500,
+    id: 1014,
+    product:     'Niébé / Haricot',
+    category:    'légumineuses',
+    quantity:    120,
+    unit:        'kg',
+    price:       550,
+    urgency:     'normal',
+    region:      'Savanes',
+    city:        'Dapaong',
+    seller:      'Adama Sawadogo',
+    phone:       '+228 99 23 45 67',
+    description: 'Niébé blanc sec, bien trié, propre. Producteur local, sans pesticides.',
+    photo:       'assets/surplus/haricot.jpg',
+    timestamp:   new Date(Date.now() - 12 * 3600000).toISOString(),
   },
   {
-    id: 13,
-    emoji: "🌿",
-    produit: "Gombos frais",
-    categorie: "legumes",
-    quantite: "60 kg",
-    prixBrut: 18000,
-    prix: "300 FCFA/kg",
-    region: "Centrale",
-    ville: "Sokodé",
-    urgence: "critique",
-    idealPour: "Cantines / Particuliers",
-    description:
-      "Gombos récoltés hier soir. Très frais, à récupérer rapidement.",
-    vendeur: "Rachidatou Sabi",
-    telephone: "+228 99 44 55 66",
-    contact: "WhatsApp",
-    lat: 8.99,
-    lng: 1.15,
-    kgNum: 60,
+    id: 1015,
+    product:     'Igname blanche',
+    category:    'tubercules',
+    quantity:    200,
+    unit:        'kg',
+    price:       350,
+    urgency:     'normal',
+    region:      'Centrale',
+    city:        'Sokodé',
+    seller:      'Kofi Atchou',
+    phone:       '+228 93 12 34 56',
+    description: 'Igname de qualité, calibre gros. Bonne conservation, disponible pour livraison.',
+    photo:       'assets/surplus/igname.jpg',
+    timestamp:   new Date(Date.now() - 6 * 3600000).toISOString(),
   },
   {
-    id: 14,
-    emoji: "🍆",
-    produit: "Aubergines fraîches",
-    categorie: "legumes",
-    quantite: "90 kg",
-    prixBrut: 45000,
-    prix: "500 FCFA/kg",
-    region: "Centrale",
-    ville: "Blitta",
-    urgence: "urgent",
-    idealPour: "Restaurants / Revendeurs",
-    description: "Aubergines locales de saison. Cueillaison ce matin.",
-    vendeur: "Latifa Yessoufou",
-    telephone: "+228 98 22 33 44",
-    contact: "Appel",
-    lat: 8.32,
-    lng: 0.98,
-    kgNum: 90,
+    id: 1016,
+    product:     'Manioc frais',
+    category:    'tubercules',
+    quantity:    400,
+    unit:        'kg',
+    price:       120,
+    urgency:     'urgent',
+    region:      'Plateaux',
+    city:        'Notsé',
+    seller:      'Akpéné Teta',
+    phone:       '+228 91 11 22 33',
+    description: 'Manioc fraîchement récolté, à transformer impérativement sous 48h.',
+    photo:       'assets/surplus/manioc.jpg',
+    timestamp:   new Date(Date.now() - 4 * 3600000).toISOString(),
   },
   {
-    id: 15,
-    emoji: "🌶️",
-    produit: "Piments rouges",
-    categorie: "condiments",
-    quantite: "45 kg",
-    prixBrut: 31500,
-    prix: "700 FCFA/kg",
-    region: "Kara",
-    ville: "Kara",
-    urgence: "urgent",
-    idealPour: "Restaurants / Transformateurs",
-    description: "Piments rouges très parfumés, variété locale. Récoltés hier.",
-    vendeur: "Afi Tchassim",
-    telephone: "+228 91 23 45 67",
-    contact: "WhatsApp",
-    lat: 9.551,
-    lng: 1.186,
-    kgNum: 45,
+    id: 1017,
+    product:     'Banane plantain',
+    category:    'fruits',
+    quantity:    180,
+    unit:        'kg',
+    price:       260,
+    urgency:     'normal',
+    region:      'Plateaux',
+    city:        'Agou Nyogbo',
+    seller:      'Mawuli Amewu',
+    phone:       '+228 97 66 55 44',
+    description: 'Plantains mûres à point, idéales pour alloco, chips ou consommation directe.',
+    photo:       'assets/surplus/plantains.jpg',
+    timestamp:   new Date(Date.now() - 9 * 3600000).toISOString(),
+  },
+  // ── NIVEAU 4 : NORMAL (Produits transformés) ──
+  {
+    id: 1018,
+    product:     'Purée de tomate locale',
+    category:    'transformés',
+    quantity:    90,
+    unit:        'kg',
+    price:       800,
+    urgency:     'normal',
+    region:      'Maritime',
+    city:        'Lomé',
+    seller:      'Afi Kpodo',
+    phone:       '+228 90 12 34 56',
+    description: 'Purée de tomate artisanale, conditionnée en sachets. Production locale certifiée.',
+    photo:       'assets/surplus/puree.jpg',
+    timestamp:   new Date(Date.now() - 14 * 3600000).toISOString(),
   },
   {
-    id: 16,
-    emoji: "🥕",
-    produit: "Carottes fraîches",
-    categorie: "legumes",
-    quantite: "120 kg",
-    prixBrut: 60000,
-    prix: "500 FCFA/kg",
-    region: "Kara",
-    ville: "Pagouda",
-    urgence: "urgent",
-    idealPour: "Cantines / Marchés",
-    description:
-      "Carottes bien calibrées, récoltées avant-hier. À transformer rapidement.",
-    vendeur: "Sadia Alassani",
-    telephone: "+228 92 55 66 77",
-    contact: "WhatsApp",
-    lat: 9.58,
-    lng: 1.175,
-    kgNum: 120,
+    id: 1019,
+    product:     'Piment en poudre',
+    category:    'transformés',
+    quantity:    50,
+    unit:        'kg',
+    price:       1200,
+    urgency:     'normal',
+    region:      'Kara',
+    city:        'Pagouda',
+    seller:      'Séraphin Lare',
+    phone:       '+228 92 33 44 55',
+    description: 'Poudre de piment rouge séchée et moulue, production artisanale de la région Kara.',
+    photo:       'assets/surplus/poudre.jpg',
+    timestamp:   new Date(Date.now() - 20 * 3600000).toISOString(),
   },
   {
-    id: 17,
-    emoji: "🥔",
-    produit: "Manioc frais",
-    categorie: "tubercules",
-    quantite: "4 sacs",
-    prixBrut: 14000,
-    prix: "3 500 FCFA/sac",
-    region: "Kara",
-    ville: "Kozah",
-    urgence: "urgent",
-    idealPour: "Transformateurs / Marchés",
-    description:
-      "Manioc récolté ce matin — se dégrade rapidement. À transformer sous 48h.",
-    vendeur: "Boukari Issaka",
-    telephone: "+228 91 88 99 00",
-    contact: "Appel",
-    lat: 9.57,
-    lng: 1.2,
-    kgNum: 200,
+    id: 1020,
+    product:     'Jus de fruits locaux',
+    category:    'transformés',
+    quantity:    150,
+    unit:        'kg',
+    price:       600,
+    urgency:     'urgent',
+    region:      'Plateaux',
+    city:        'Kpalimé',
+    seller:      'Yéwa Agbessi',
+    phone:       '+228 91 22 33 44',
+    description: 'Jus naturels de mangue et ananas, sans conservateurs. Produits en petite série.',
+    photo:       'assets/surplus/juice.jpg',
+    timestamp:   new Date(Date.now() - 7 * 3600000).toISOString(),
   },
   {
-    id: 18,
-    emoji: "🍅",
-    produit: "Tomates — Savanes",
-    categorie: "legumes",
-    quantite: "650 kg",
-    prixBrut: 260000,
-    prix: "400 FCFA/kg",
-    region: "Savanes",
-    ville: "Dapaong",
-    urgence: "critique",
-    idealPour: "Cantines / Transformateurs",
-    description:
-      "Grande récolte dans les Savanes. Tomates très mûres, vente urgente.",
-    vendeur: "Hamidou Pali",
-    telephone: "+228 90 77 88 99",
-    contact: "Appel",
-    lat: 10.862,
-    lng: 0.206,
-    kgNum: 650,
+    id: 1021,
+    product:     'Miel conditionné',
+    category:    'transformés',
+    quantity:    30,
+    unit:        'kg',
+    price:       2500,
+    urgency:     'normal',
+    region:      'Centrale',
+    city:        'Blitta',
+    seller:      'Gnon Kpemflo',
+    phone:       '+228 93 55 66 77',
+    description: 'Miel pur de brousse, récolté et conditionné artisanalement. Non chauffé, toutes fleurs.',
+    photo:       'assets/surplus/miel.jpg',
+    timestamp:   new Date(Date.now() - 18 * 3600000).toISOString(),
   },
+  // Bonus : produit Maritime additionnel
   {
-    id: 19,
-    emoji: "🍍",
-    produit: "Ananas mûrs",
-    categorie: "fruits",
-    quantite: "180 kg",
-    prixBrut: 54000,
-    prix: "300 FCFA/kg",
-    region: "Savanes",
-    ville: "Cinkassé",
-    urgence: "urgent",
-    idealPour: "Revendeurs / Jus / Marchés",
-    description:
-      "Ananas à pleine maturité. Se détériorent vite — à écouler sous 48h.",
-    vendeur: "Mariama Coulibaly",
-    telephone: "+228 90 11 22 33",
-    contact: "WhatsApp",
-    lat: 11.002,
-    lng: 0.003,
-    kgNum: 180,
-  },
-  {
-    id: 20,
-    emoji: "🧅",
-    produit: "Oignons frais",
-    categorie: "legumes",
-    quantite: "200 kg",
-    prixBrut: 80000,
-    prix: "400 FCFA/kg",
-    region: "Savanes",
-    ville: "Dapaong",
-    urgence: "normal",
-    idealPour: "Marchés / Revendeurs",
-    description:
-      "Oignons frais de la région de Dapaong. Bonne conservation mais stock important.",
-    vendeur: "Aboudou Tchaa",
-    telephone: "+228 90 44 55 66",
-    contact: "WhatsApp",
-    lat: 10.875,
-    lng: 0.215,
-    kgNum: 200,
+    id: 1022,
+    product:     'Piments rouges',
+    category:    'légumes',
+    quantity:    65,
+    unit:        'kg',
+    price:       400,
+    urgency:     'critique',
+    region:      'Maritime',
+    city:        'Tsévié',
+    seller:      'Dodzi Abalo',
+    phone:       '+228 90 77 88 99',
+    description: 'Piments frais récoltés ce matin dans les jardins maraîchers de Tsévié.',
+    photo:       'assets/surplus/piment_rouge.jpg',
+    timestamp:   new Date(Date.now() - 1 * 3600000).toISOString(),
   },
 ];
 
-const demandesData = [
-  {
-    icon: "🍴",
-    acheteur: "Restaurant Le Gourmet",
-    produit: "Recherche 500 kg de tomates fraîches",
-    region: "Maritime — Lomé",
-    telephone: "+228 91 00 22 33",
-  },
-  {
-    icon: "🏫",
-    acheteur: "Cantine scolaire Agoè",
-    produit: "Recherche laitues + concombres 80 kg",
-    region: "Maritime — Lomé",
-    telephone: "+228 92 33 44 55",
-  },
-  {
-    icon: "🏭",
-    acheteur: "Transformateur SoyaTogo",
-    produit: "Recherche 2 tonnes de tomates",
-    region: "Plateaux — Atakpamé",
-    telephone: "+228 93 55 66 77",
-  },
-  {
-    icon: "🏨",
-    acheteur: "Hôtel Sarakawa Lomé",
-    produit: "Recherche fruits frais variés chaque semaine",
-    region: "Maritime — Lomé",
-    telephone: "+228 22 21 00 00",
-  },
-  {
-    icon: "🛒",
-    acheteur: "Marché de Kpalimé",
-    produit: "Recherche 300 kg de piments frais",
-    region: "Plateaux — Kpalimé",
-    telephone: "+228 93 77 88 99",
-  },
-  {
-    icon: "🥗",
-    acheteur: "Cantine universitaire Lomé",
-    produit: "Recherche légumes frais — abonnement",
-    region: "Maritime — Lomé",
-    telephone: "+228 22 35 00 00",
-  },
-  {
-    icon: "🏥",
-    acheteur: "CHU Sylvanus Olympio",
-    produit: "Recherche légumes pour patients",
-    region: "Maritime — Lomé",
-    telephone: "+228 22 21 25 11",
-  },
-  {
-    icon: "🚚",
-    acheteur: "Revendeur Dapaong",
-    produit: "Recherche tomates et oignons des Savanes",
-    region: "Savanes — Dapaong",
-    telephone: "+228 90 50 60 70",
-  },
-];
+// Coordonnées GPS des villes togolaises
+const CITY_COORDS = {
+  'Lomé':       [6.1375, 1.2123],
+  'Kpalimé':    [6.9003, 0.6307],
+  'Atakpamé':   [7.5309, 1.1270],
+  'Sokodé':     [8.9861, 1.1444],
+  'Kara':       [9.5519, 1.1864],
+  'Dapaong':    [10.8631, 0.2081],
+  'Tsévié':     [6.4209, 1.2152],
+  'Aneho':      [6.2334, 1.5956],
+  'Notsé':      [6.9587, 1.1744],
+  'Agoè-Nyivé': [6.2158, 1.1971],
+  'Cinkassé':   [10.9916, 0.2303],
+  'Agou Nyogbo':[6.8833, 0.7500],
+  'Pagouda':    [9.7558, 1.3628],
+  'Blitta':     [8.3167, 1.0667],
+};
 
-/* ---- HELPERS ---- */
-function getTousSurplus() {
-  try {
-    const l = JSON.parse(localStorage.getItem("agriflash-surplus") || "[]");
-    return [...surplusData, ...l];
-  } catch (e) {
-    return [...surplusData];
-  }
-}
-function getBadgeLabel(u) {
-  if (u === "critique") return "🔴 Critique — &lt; 24h";
-  if (u === "urgent") return "🟠 Urgent — &lt; 48h";
-  return "🟢 Normal";
-}
+// Villes rattachées à chaque région (cohérence Région → Ville)
+const CITY_BY_REGION = {
+  'Maritime':  ['Lomé', 'Tsévié', 'Aneho', 'Agoè-Nyivé'],
+  'Plateaux':  ['Kpalimé', 'Atakpamé', 'Notsé', 'Agou Nyogbo'],
+  'Centrale':  ['Sokodé', 'Blitta'],
+  'Kara':      ['Kara', 'Pagouda'],
+  'Savanes':   ['Dapaong', 'Cinkassé'],
+};
 
-/* ---- ANALYSE IA ---- */
-function analyserRisque(item) {
-  if (item.urgence === "critique")
-    return {
-      risque: "92%",
-      niveau: "haut",
-      recommandation: `Contacter en priorité les <strong>restaurants et cantines de ${item.ville || item.region}</strong> dans les <strong>12 prochaines heures</strong>. Proposer une réduction de 10–15 % pour écoulement rapide.`,
-    };
-  if (item.urgence === "urgent")
-    return {
-      risque: "68%",
-      niveau: "moyen",
-      recommandation: `Les <strong>revendeurs locaux de ${item.region}</strong> sont recommandés. Délai maximum : <strong>48h</strong>. Contacter aussi les marchés proches.`,
-    };
-  return {
-    risque: "25%",
-    niveau: "bas",
-    recommandation: `Aucune action immédiate. Vous disposez de <strong>quelques jours</strong>. Utilisez les canaux habituels.`,
-  };
-}
+// ═══════════════════════════════════════════════
+// 2. STATE
+// ═══════════════════════════════════════════════
+let state = {
+  surplusList:    [],
+  filtered:       [],
+  searchQuery:    '',
+  activeCategory: 'tous',
+  activeRegion:   'toutes',
+};
 
-/* ---- TOP PRODUITS MENACÉS ---- */
-function getTopProduitsMenaces(tous) {
-  const scores = {};
-  tous.forEach((i) => {
-    const poids = i.urgence === "critique" ? 3 : i.urgence === "urgent" ? 2 : 1;
-    scores[i.produit] = (scores[i.produit] || 0) + poids * (i.kgNum || 0);
-  });
-  return Object.entries(scores)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([nom], idx) => ({ rang: idx + 1, nom }));
-}
-
-/* ---- INDICE AGRIFLASH ---- */
-function calculerIndice(tous) {
-  const total = tous.length;
-  if (!total) return 0;
-  const critiques = tous.filter((i) => i.urgence === "critique").length;
-  const urgents = tous.filter((i) => i.urgence === "urgent").length;
-  const regions = new Set(tous.map((i) => i.region)).size;
-  const couverture = (regions / 5) * 100;
-  const reactivite =
-    100 - Math.round((critiques / total) * 60 + (urgents / total) * 30);
-  return Math.min(99, Math.round(couverture * 0.4 + reactivite * 0.6));
-}
-
-/* ---- TEMPS MOYEN SAUVETAGE ---- */
-function tempsMoyenSauvetage(tous) {
-  const h = tous.map((i) =>
-    i.urgence === "critique" ? 18 : i.urgence === "urgent" ? 36 : 72,
-  );
-  if (!h.length) return 0;
-  return Math.round(h.reduce((a, b) => a + b, 0) / h.length);
-}
-
-/* ---- DASHBOARD ---- */
-function initDashboard() {
-  const tous = getTousSurplus();
-  animCount("d-surplus", tous.length, "", 900);
-  animCount(
-    "d-critiques",
-    tous.filter((i) => i.urgence === "critique").length,
-    "",
-    900,
-  );
-  animCount(
-    "d-kg",
-    tous.reduce((a, i) => a + (i.kgNum || 0), 0),
-    " kg",
-    1200,
-  );
-  animCount(
-    "d-fcfa",
-    tous.reduce((a, i) => a + (i.prixBrut || 0), 0),
-    " FCFA",
-    1400,
-  );
-  animCount(
-    "d-repas",
-    Math.round(tous.reduce((a, i) => a + (i.kgNum || 0), 0) * 2.5),
-    "",
-    1300,
-  );
-  animCount("d-regions", new Set(tous.map((i) => i.region)).size, "", 800);
-  initBonusStats(tous);
-}
-
-function initBonusStats(tous) {
-  const el = document.getElementById("bonus-stats");
-  if (!el) return;
-  const indice = calculerIndice(tous);
-  const tps = tempsMoyenSauvetage(tous);
-  const top = getTopProduitsMenaces(tous);
-  el.innerHTML = `
-    <div class="bonus-grid">
-      <div class="bonus-card indice">
-        <div class="bonus-icon">🛡️</div>
-        <div class="bonus-num">${indice}%</div>
-        <div class="bonus-label">Indice AgriFlash de réduction des pertes</div>
-      </div>
-      <div class="bonus-card temps">
-        <div class="bonus-icon">⏱️</div>
-        <div class="bonus-num">${tps}h</div>
-        <div class="bonus-label">Temps moyen de sauvetage d'un surplus</div>
-      </div>
-      <div class="bonus-card top">
-        <div class="bonus-icon">⚠️</div>
-        <div class="bonus-label" style="font-weight:700;margin-bottom:8px">Top produits menacés</div>
-        ${top.map((p) => `<div class="top-item"><span class="top-rang">${p.rang}.</span> ${p.nom}</div>`).join("")}
-      </div>
-    </div>`;
-}
-
-function animCount(id, target, suffix, duration) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  let start = 0;
-  const step = Math.max(1, Math.ceil(target / (duration / 16)));
-  const t = setInterval(() => {
-    start = Math.min(start + step, target);
-    el.textContent =
-      (target >= 1000 ? start.toLocaleString("fr-FR") : start) + suffix;
-    if (start >= target) clearInterval(t);
-  }, 16);
-}
-
-/* ---- TICKER DYNAMIQUE ---- */
-function genererTickerHTML(tous) {
-  const items = [
-    ...tous.filter((i) => i.urgence === "critique"),
-    ...tous.filter((i) => i.urgence === "urgent"),
-  ];
-  const vus = new Set();
-  const uniques = items.filter((i) => {
-    const key = `${i.produit}|${i.region}`;
-    if (vus.has(key)) return false;
-    vus.add(key);
-    return true;
-  });
-  const spans = uniques
-    .map((i) => {
-      const dot = i.urgence === "critique" ? "🔴" : "🟠";
-      return `<span>${dot} ${i.kgNum} kg de ${i.produit.toLowerCase()} — ${i.ville || i.region} — ${i.urgence === "critique" ? "risque de perte sous 24h" : "à écouler sous 48h"}</span>`;
-    })
-    .join("");
-  return spans + spans; // doublement pour animation infinie
-}
-
-function initTicker() {
-  const inner = document.getElementById("ticker-inner");
-  if (!inner) return;
-  inner.innerHTML = genererTickerHTML(getTousSurplus());
-}
-
-/* ---- CARTE LEAFLET ---- */
-let mapInstance = null;
-
-function initMap() {
-  if (!window.L || !document.getElementById("map")) return;
-  mapInstance = L.map("map", {
-    center: [8.0, 1.2],
-    zoom: 8,
-    minZoom: 7,
-    maxZoom: 12,
-    maxBounds: [
-      [6.0, -0.5],
-      [11.5, 2.0],
-    ],
-  });
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "© OpenStreetMap contributors",
-  }).addTo(mapInstance);
-
-  const tous = getTousSurplus();
-  const regionsMap = {};
-  tous.forEach((item) => {
-    const key = item.region; // toujours région officielle
-    if (!regionsMap[key]) {
-      const coords =
-        getCoordsRegion(key) || (item.lat ? [item.lat, item.lng] : null);
-      if (!coords) return;
-      regionsMap[key] = {
-        lat: coords[0],
-        lng: coords[1],
-        kg: 0,
-        count: 0,
-        items: [],
-      };
-    }
-    regionsMap[key].kg += item.kgNum || 0;
-    regionsMap[key].count += 1;
-    regionsMap[key].items.push(item);
-  });
-
-  Object.entries(regionsMap).forEach(([region, data]) => {
-    if (!data.lat) return;
-    const couleur = data.items.some((i) => i.urgence === "critique")
-      ? "#a32d2d"
-      : data.items.some((i) => i.urgence === "urgent")
-        ? "#ba7517"
-        : "#1d9e75";
-    const marker = L.circleMarker([data.lat, data.lng], {
-      radius: Math.min(8 + data.kg / 80, 32),
-      fillColor: couleur,
-      color: "#fff",
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.85,
-    }).addTo(mapInstance);
-    marker.bindPopup(
-      `<strong>📍 Région ${region}</strong><br/>📦 ${data.count} surplus actif${data.count > 1 ? "s" : ""}<br/>🌍 ${data.kg.toLocaleString("fr-FR")} kg sauvables<br/>${data.items.map((i) => `• ${i.emoji} ${i.produit} — ${i.ville} (${i.urgence})`).join("<br/>")}`,
-    );
-  });
-
-  const legend = L.control({ position: "bottomright" });
-  legend.onAdd = () => {
-    const div = L.DomUtil.create("div");
-    div.style.cssText =
-      "background:#fff;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.8;box-shadow:0 2px 8px rgba(0,0,0,0.15)";
-    div.innerHTML = `<strong>Niveau d'urgence</strong><br><span style="color:#a32d2d">●</span> Critique (&lt; 24h)<br><span style="color:#ba7517">●</span> Urgent (&lt; 48h)<br><span style="color:#1d9e75">●</span> Normal`;
-    return div;
-  };
-  legend.addTo(mapInstance);
-}
-
-function reinitMap() {
-  if (mapInstance) {
-    try {
-      mapInstance.remove();
-    } catch (e) {}
-    mapInstance = null;
-  }
-  setTimeout(initMap, 150);
-}
-
-/* ---- AFFICHAGE CARTES SURPLUS ---- */
-function afficherSurplus(liste) {
-  const grid = document.getElementById("grid-surplus");
-  if (!grid) return;
-  if (!liste.length) {
-    grid.innerHTML =
-      '<p style="color:#888;text-align:center;padding:2rem;grid-column:1/-1">Aucun surplus trouvé.</p>';
-    return;
-  }
-  const ordre = { critique: 0, urgent: 1, normal: 2 };
-  const sorted = [...liste].sort(
-    (a, b) => (ordre[a.urgence] || 2) - (ordre[b.urgence] || 2),
-  );
-  grid.innerHTML = sorted
-    .map((item) => {
-      const estLocal = !surplusData.find((s) => s.id === item.id);
-      return `<div class="card" data-id="${item.id}">
-      <span class="card-emoji">${item.emoji}</span>
-      <div class="card-header"><span class="card-produit">${item.produit}</span><span class="badge-urgence ${item.urgence}">${getBadgeLabel(item.urgence)}</span></div>
-      <p class="card-info">📦 ${item.quantite}</p>
-      <p class="card-info">📍 ${item.ville} — <em>Région ${item.region}</em></p>
-      <span class="card-ideal">👥 ${item.idealPour}</span>
-      <p class="card-prix">${item.prix}</p>
-      <div class="card-footer">
-        <span class="card-vendeur">👤 ${item.vendeur}</span>
-        <div class="card-actions">
-          <button class="btn-ia" onclick="ouvrirIA(${item.id})">🤖 IA</button>
-          <button class="btn-contact" onclick="ouvrirModal(${item.id})">Contacter</button>
-          ${estLocal ? `<button class="btn-supprimer" onclick="supprimerSurplus(${item.id})" title="Supprimer">🗑️</button>` : ""}
-        </div>
-      </div>
-    </div>`;
-    })
-    .join("");
-}
-
-/* ---- SUPPRESSION ---- */
-function supprimerSurplus(id) {
-  if (!confirm("Supprimer ce surplus ?")) return;
-  try {
-    const l = JSON.parse(localStorage.getItem("agriflash-surplus") || "[]");
-    localStorage.setItem(
-      "agriflash-surplus",
-      JSON.stringify(l.filter((s) => s.id !== id)),
-    );
-  } catch (e) {
-    console.error(e);
-  }
-  filtrer();
-  initDashboard();
-  reinitMap();
-  reinitCharts();
+// ═══════════════════════════════════════════════
+// 3. DOM READY
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initNavbar();
+  loadData();
+  updateDashboardStats();
+  renderSurplusGrid();
+  initSearch();
+  initMap();
+  animateCounters();
+  initCarousel();
   initTicker();
+  initCharts();
+});
+
+// ═══════════════════════════════════════════════
+// 3B. DASHBOARD DYNAMIQUE — calculé depuis state.surplusList
+// ═══════════════════════════════════════════════
+function updateDashboardStats() {
+  const list = state.surplusList;
+
+  const elActifs    = document.getElementById('stat-actifs');
+  const elCritiques = document.getElementById('stat-critiques');
+  const elPrix      = document.getElementById('stat-prix-moyen');
+  const elKg        = document.getElementById('stat-kg');
+  const elRegions   = document.getElementById('stat-regions');
+
+  const actifs    = list.length;
+  const critiques = list.filter((i) => i.urgency === 'critique').length;
+
+  // Prix moyen (moyenne simple) calculé sur les produits vendus au kg,
+  // l'unité la plus représentée du catalogue — affiché en FCFA/kg.
+  const kgItems   = list.filter((i) => i.unit === 'kg');
+  const prixMoyen = kgItems.length
+    ? Math.round(kgItems.reduce((sum, i) => sum + i.price, 0) / kgItems.length)
+    : 0;
+
+  // Kg sauvés = somme des quantités des produits vendus au kg uniquement
+  const kgSaved = list.reduce((sum, i) => sum + (i.unit === 'kg' ? i.quantity : 0), 0);
+
+  // Régions distinctes couvertes, plafonné à 5 (nombre total de régions du Togo)
+  const regionsCount = Math.min(new Set(list.map((i) => i.region)).size, 5);
+
+  if (elActifs)    { elActifs.dataset.target = actifs;    elActifs.textContent = '0'; }
+  if (elCritiques) { elCritiques.dataset.target = critiques; elCritiques.textContent = '0'; }
+  if (elPrix)       { elPrix.dataset.target = prixMoyen;   elPrix.dataset.suffix = ' FCFA/kg'; elPrix.textContent = '0 FCFA/kg'; }
+  if (elKg)         { elKg.dataset.target = kgSaved;       elKg.dataset.suffix = ' kg';         elKg.textContent = '0 kg'; }
+  if (elRegions)    { elRegions.dataset.target = regionsCount; elRegions.dataset.suffix = '/5';  elRegions.textContent = '0/5'; }
 }
 
-/* ---- FILTRES ---- */
-function filtrer() {
-  const s = (document.getElementById("search")?.value || "").toLowerCase();
-  const r = document.getElementById("filtre-region")?.value || "";
-  const u = document.getElementById("filtre-urgence")?.value || "";
-  const c = document.getElementById("filtre-categorie")?.value || "";
-  afficherSurplus(
-    getTousSurplus().filter(
-      (i) =>
-        (i.produit.toLowerCase().includes(s) ||
-          (i.ville || "").toLowerCase().includes(s) ||
-          i.region.toLowerCase().includes(s)) &&
-        (!r || i.region === r) && // filtre sur région officielle
-        (!u || i.urgence === u) &&
-        (!c || i.categorie === c),
-    ),
-  );
-}
-function reinitialiserFiltres() {
-  ["search", "filtre-region", "filtre-urgence", "filtre-categorie"].forEach(
-    (id) => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    },
-  );
-  afficherSurplus(getTousSurplus());
-}
+// ═══════════════════════════════════════════════
+// 4. NAVBAR — hamburger
+// ═══════════════════════════════════════════════
+function initNavbar() {
+  const hamburger  = document.getElementById('hamburger');
+  const navLinks   = document.getElementById('nav-links');
+  const navActions = document.getElementById('nav-actions');
+  if (!hamburger) return;
 
-/* ---- MODAL CONTACT ---- */
-function ouvrirModal(id) {
-  const item = getTousSurplus().find((s) => s.id === id);
-  if (!item) return;
-  const tel = item.telephone.replace(/\s|\+/g, "");
-  document.getElementById("modal-title").textContent =
-    item.emoji + " " + item.produit;
-  document.getElementById("modal-body").innerHTML = `
-    <p class="modal-info">📦 <strong>Quantité :</strong> ${item.quantite}</p>
-    <p class="modal-info">💰 <strong>Prix :</strong> ${item.prix}</p>
-    <p class="modal-info">📍 <strong>Lieu :</strong> ${item.ville} — Région ${item.region}</p>
-    <p class="modal-info">👥 <strong>Idéal pour :</strong> ${item.idealPour}</p>
-    <p class="modal-info">📝 ${item.description}</p>
-    <p class="modal-tel">📞 ${item.telephone}</p>
-    <p class="modal-info" style="font-size:.85rem;color:#888">Via : ${item.contact}</p>
-    <a class="btn-whatsapp" href="https://wa.me/${tel}" target="_blank" onclick="afficherSucces(${item.id})">💬 Contacter sur WhatsApp</a>`;
-  document.getElementById("modal").style.display = "flex";
-}
-function fermerModal() {
-  document.getElementById("modal").style.display = "none";
-}
-
-/* ---- MODAL SUCCÈS ---- */
-function afficherSucces(id) {
-  const item = getTousSurplus().find((s) => s.id === id);
-  if (!item) return;
-  const repas = Math.round((item.kgNum || 0) * 2.5);
-  document.getElementById("success-impact").innerHTML = `
-    <div class="success-stat">${item.quantite}</div><div class="success-desc">de ${item.produit.toLowerCase()} potentiellement sauvés du gaspillage</div>
-    <div class="success-stat">${repas > 0 ? repas.toLocaleString("fr-FR") + " repas" : "—"}</div><div class="success-desc">préservés pour la communauté togolaise</div>
-    <div class="success-stat">${(item.prixBrut || 0).toLocaleString("fr-FR")} FCFA</div><div class="success-desc">de revenus protégés pour l'agriculteur</div>`;
-  fermerModal();
-  setTimeout(() => {
-    document.getElementById("modal-success").style.display = "flex";
-  }, 200);
-}
-function fermerModalSuccess() {
-  document.getElementById("modal-success").style.display = "none";
-}
-
-/* ---- IA PANEL ---- */
-function ouvrirIA(id) {
-  const item = getTousSurplus().find((s) => s.id === id);
-  if (!item) return;
-  const a = analyserRisque(item);
-  document.getElementById("ia-content").innerHTML = `
-    <p class="ia-produit">Produit analysé : <strong>${item.emoji} ${item.produit}</strong></p>
-    <div>Risque de perte estimé</div>
-    <div class="ia-risque ${a.niveau}">${a.risque}</div>
-    <div class="ia-reco"><strong>Action recommandée :</strong><br>${a.recommandation}</div>`;
-  document.getElementById("ia-panel").style.display = "block";
-}
-
-/* ---- DEMANDES ---- */
-function afficherDemandes() {
-  const grid = document.getElementById("demandes-grid");
-  if (!grid) return;
-  grid.innerHTML = demandesData
-    .map(
-      (d) => `
-    <div class="demande-card">
-      <div class="demande-icon">${d.icon}</div>
-      <div class="demande-acheteur">${d.acheteur}</div>
-      <div class="demande-produit">${d.produit}</div>
-      <div class="demande-region">📍 ${d.region}</div>
-      <button class="btn-repondre" onclick="window.open('https://wa.me/${d.telephone.replace(/\s|\+/g, "")}','_blank')">Répondre →</button>
-    </div>`,
-    )
-    .join("");
-}
-
-/* ---- GRAPHIQUES ---- */
-let chartsInstances = {};
-function reinitCharts() {
-  Object.values(chartsInstances).forEach((c) => {
-    try {
-      c.destroy();
-    } catch (e) {}
+  hamburger.addEventListener('click', () => {
+    const open = hamburger.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', open);
+    navLinks.classList.toggle('open', open);
+    navActions.classList.toggle('open', open);
   });
-  chartsInstances = {};
-  setTimeout(initCharts, 150);
-}
 
-function initCharts() {
-  if (!window.Chart) return;
-  const tous = getTousSurplus();
-
-  // Plugin mention données simulées
-  const notePlugin = {
-    id: "noteSimulee",
-    afterDraw(chart) {
-      const { ctx } = chart;
-      ctx.save();
-      ctx.font = "10px Segoe UI,sans-serif";
-      ctx.fillStyle = "#bbb";
-      ctx.textAlign = "right";
-      ctx.fillText(
-        "⚠ Données simulées à des fins de démonstration.",
-        chart.width - 8,
-        chart.height - 2,
-      );
-      ctx.restore();
-    },
-  };
-
-  const opts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-  };
-
-  const ctxP = document.getElementById("chartPertes");
-  if (ctxP)
-    chartsInstances.pertes = new Chart(ctxP, {
-      type: "line",
-      plugins: [notePlugin],
-      data: {
-        labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun"],
-        datasets: [
-          {
-            label: "Sans AgriFlash",
-            data: [42, 44, 41, 43, 42, 40],
-            borderColor: "#a32d2d",
-            backgroundColor: "rgba(163,45,45,0.07)",
-            tension: 0.4,
-            fill: true,
-            borderDash: [6, 3],
-          },
-          {
-            label: "Avec AgriFlash",
-            data: [42, 36, 30, 24, 20, 18],
-            borderColor: "#1d9e75",
-            backgroundColor: "rgba(29,158,117,0.1)",
-            tension: 0.4,
-            fill: true,
-          },
-        ],
-      },
-      options: {
-        ...opts,
-        scales: {
-          y: {
-            min: 0,
-            max: 55,
-            ticks: { callback: (v) => v + "%", font: { size: 11 } },
-            grid: { color: "rgba(0,0,0,0.05)" },
-          },
-          x: { ticks: { font: { size: 11 } }, grid: { display: false } },
-        },
-      },
-    });
-
-  const ctxC = document.getElementById("chartConnexions");
-  if (ctxC)
-    chartsInstances.connexions = new Chart(ctxC, {
-      type: "bar",
-      plugins: [notePlugin],
-      data: {
-        labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun"],
-        datasets: [
-          {
-            label: "Connexions/mois",
-            data: [12, 28, 45, 67, 89, 120],
-            backgroundColor: "#0f6e56",
-            borderRadius: 5,
-          },
-        ],
-      },
-      options: {
-        ...opts,
-        scales: {
-          y: {
-            ticks: { font: { size: 11 } },
-            grid: { color: "rgba(0,0,0,0.05)" },
-          },
-          x: { ticks: { font: { size: 11 } }, grid: { display: false } },
-        },
-      },
-    });
-
-  // Kg sauvés — calculé depuis données réelles
-  const kgTotal = tous.reduce((a, i) => a + (i.kgNum || 0), 0);
-  const kgHebdo = [0.06, 0.11, 0.17, 0.25, 0.35, 0.48, 0.65].map((r) =>
-    Math.round(kgTotal * r),
-  );
-  const ctxK = document.getElementById("chartKg");
-  if (ctxK)
-    chartsInstances.kg = new Chart(ctxK, {
-      type: "line",
-      plugins: [notePlugin],
-      data: {
-        labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
-        datasets: [
-          {
-            label: "Kg sauvés",
-            data: kgHebdo,
-            borderColor: "#1d9e75",
-            backgroundColor: "rgba(29,158,117,0.12)",
-            tension: 0.4,
-            fill: true,
-            pointRadius: 4,
-          },
-        ],
-      },
-      options: {
-        ...opts,
-        scales: {
-          y: {
-            ticks: { callback: (v) => v + " kg", font: { size: 10 } },
-            grid: { color: "rgba(0,0,0,0.05)" },
-          },
-          x: { ticks: { font: { size: 10 } }, grid: { display: false } },
-        },
-      },
-    });
-
-  // Catégories — calculé depuis données réelles
-  const catLabels = {
-    legumes: "Légumes",
-    fruits: "Fruits",
-    tubercules: "Tubercules",
-    condiments: "Condiments",
-    cereales: "Céréales",
-  };
-  const cats = {};
-  tous.forEach((i) => {
-    cats[i.categorie] = (cats[i.categorie] || 0) + 1;
+  document.addEventListener('click', (e) => {
+    if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+      hamburger.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', false);
+      navLinks.classList.remove('open');
+      navActions.classList.remove('open');
+    }
   });
-  const ctxCat = document.getElementById("chartCategories");
-  if (ctxCat)
-    chartsInstances.categories = new Chart(ctxCat, {
-      type: "doughnut",
-      plugins: [notePlugin],
-      data: {
-        labels: Object.keys(cats).map((k) => catLabels[k] || k),
-        datasets: [
-          {
-            data: Object.values(cats),
-            backgroundColor: [
-              "#1d9e75",
-              "#0f6e56",
-              "#ba7517",
-              "#a32d2d",
-              "#9fe1cb",
-            ],
-            borderWidth: 2,
-            borderColor: "#fff",
-          },
-        ],
-      },
-      options: {
-        ...opts,
-        plugins: {
-          legend: {
-            position: "right",
-            labels: { font: { size: 11 }, boxWidth: 12, padding: 10 },
-          },
-        },
-      },
-    });
-}
 
-/* ---- NOTIFICATIONS ---- */
-let notifIndex = 0,
-  notifsGenerees = [];
-function genererNotifs() {
-  const tous = getTousSurplus();
-  const notifs = [];
-  tous
-    .filter((i) => i.urgence === "critique")
-    .slice(0, 2)
-    .forEach((i) => {
-      notifs.push({
-        title: "🔴 Surplus critique",
-        sub: `${i.kgNum} kg de ${i.produit} — ${i.region}`,
-        urgent: true,
-      });
-    });
-  tous
-    .filter((i) => i.urgence === "urgent")
-    .slice(0, 1)
-    .forEach((i) => {
-      notifs.push({
-        title: "🟠 Surplus urgent",
-        sub: `${i.produit} — ${i.quantite} — ${i.region}`,
-        urgent: false,
-      });
-    });
-  notifs.push({
-    title: "✅ Couverture nationale",
-    sub: "5 régions actives sur AgriFlash",
-    urgent: false,
-  });
-  return notifs.slice(0, 4);
-}
-function showNotif() {
-  if (!notifsGenerees.length) return;
-  const n = notifsGenerees[notifIndex++ % notifsGenerees.length];
-  const el = document.getElementById("notif");
-  if (!el) return;
-  document.getElementById("notif-title").textContent = n.title;
-  document.getElementById("notif-sub").textContent = n.sub;
-  el.className = "notif-toast" + (n.urgent ? " urgent" : "");
-  void el.offsetWidth;
-  el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 3500);
-}
-
-/* ---- MENU MOBILE ---- */
-function initMenuMobile() {
-  const hamburger = document.getElementById("hamburger"),
-    navLinks = document.getElementById("nav-links");
-  if (!hamburger || !navLinks) return;
-  hamburger.addEventListener("click", () => {
-    const o = navLinks.classList.toggle("nav-open");
-    hamburger.setAttribute("aria-expanded", String(o));
-  });
-}
-
-/* ---- FORMULAIRE ---- */
-function initFormulaire() {
-  const form = document.getElementById("form-surplus");
-  if (!form) return;
-  const regionSelect = document.getElementById("region");
-  const villeSelect = document.getElementById("ville");
-
-  // Villes dépendantes de la région
-  if (regionSelect && villeSelect) {
-    regionSelect.addEventListener("change", () => {
-      const r = regionSelect.value;
-      villeSelect.innerHTML =
-        '<option value="">-- Choisir une ville --</option>';
-      villeSelect.disabled = !r;
-      if (r && VILLES_PAR_REGION[r]) {
-        VILLES_PAR_REGION[r].forEach((v) => {
-          const opt = document.createElement("option");
-          opt.value = v.nom;
-          opt.textContent = v.nom;
-          villeSelect.appendChild(opt);
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.nav-links a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        links.forEach((l) => {
+          l.classList.toggle('active', l.getAttribute('href') === `#${entry.target.id}`);
         });
       }
     });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach((s) => observer.observe(s));
+}
+
+// ═══════════════════════════════════════════════
+// 5. DATA — merge demo + localStorage
+// ═══════════════════════════════════════════════
+function loadData() {
+  const local = JSON.parse(localStorage.getItem('agriflash_surplus') || '[]');
+  const localWithCat = local.map((item) => ({
+    ...item,
+    // Conserve la catégorie choisie dans le formulaire ; ne devine que si absente
+    category: item.category || guessCategory(item.product),
+  }));
+  state.surplusList = [...localWithCat, ...DEMO_SURPLUS];
+  state.filtered    = [...state.surplusList];
+}
+
+function guessCategory(name = '') {
+  const n = name.toLowerCase();
+  if (/tomate|piment|aubergine|oignon|gombo|chou|haricot vert|carotte|concombre|ademe|gboma|épinard/i.test(n)) return 'légumes';
+  if (/mangue|papaye|ananas|banane|plantain|orange|cajou/i.test(n)) return 'fruits';
+  if (/mais|sorgho|mil|riz/i.test(n)) return 'céréales';
+  if (/manioc|igname|patate|taro/i.test(n)) return 'tubercules';
+  if (/niébé|haricot|arachide|soja/i.test(n)) return 'légumineuses';
+  if (/oeuf|caille|poulet|volaille/i.test(n)) return 'aviculture';
+  if (/purée|poudre|jus|miel|transformé/i.test(n)) return 'transformés';
+  return 'autres';
+}
+
+// ═══════════════════════════════════════════════
+// 6. SEARCH & FILTER
+// ═══════════════════════════════════════════════
+function initSearch() {
+  const searchInput = document.getElementById('search-input');
+  const chips       = document.querySelectorAll('.filter-chip');
+  const regionSel   = document.getElementById('region-filter');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', debounce((e) => {
+      state.searchQuery = e.target.value.trim().toLowerCase();
+      applyFilters();
+    }, 250));
   }
 
-  // Validation inline
-  function validerChamp(id, msgVide) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const showErr = (msg) => {
-      const parent = el.closest(".form-group");
-      if (!parent) return;
-      let e = parent.querySelector(".form-error");
-      if (!e) {
-        e = document.createElement("span");
-        e.className = "form-error";
-        parent.appendChild(e);
-      }
-      e.textContent = msg;
-      if (msg) el.classList.add("invalid");
-      else el.classList.remove("invalid");
-    };
-    el.addEventListener("blur", () => {
-      showErr(!el.value.trim() ? msgVide : "");
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      chips.forEach((c) => { c.classList.remove('active'); c.setAttribute('aria-pressed', 'false'); });
+      chip.classList.add('active');
+      chip.setAttribute('aria-pressed', 'true');
+      state.activeCategory = chip.dataset.filter;
+      applyFilters();
     });
-    el.addEventListener("input", () => {
-      if (el.value.trim()) showErr("");
+  });
+
+  if (regionSel) {
+    regionSel.addEventListener('change', () => {
+      state.activeRegion = regionSel.value;
+      applyFilters();
     });
   }
-  validerChamp("nom-produit", "⚠ Nom du produit obligatoire.");
-  validerChamp("categorie", "⚠ Veuillez sélectionner une catégorie.");
-  validerChamp("quantite", "⚠ Quantité obligatoire.");
-  validerChamp("unite", "⚠ Veuillez choisir une unité.");
-  validerChamp("prix", "⚠ Prix obligatoire.");
-  validerChamp("region", "⚠ Veuillez sélectionner une région.");
-  validerChamp("urgence", "⚠ Niveau d'urgence obligatoire.");
-  validerChamp("nom-vendeur", "⚠ Votre nom est obligatoire.");
-  validerChamp("telephone", "⚠ Numéro de téléphone obligatoire.");
+}
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const requis = [
-      "nom-produit",
-      "categorie",
-      "quantite",
-      "unite",
-      "prix",
-      "region",
-      "urgence",
-      "nom-vendeur",
-      "telephone",
-    ];
-    let valide = true;
-    requis.forEach((id) => {
-      const el = document.getElementById(id);
-      if (!el || !el.value.trim()) {
-        valide = false;
-        el?.classList.add("invalid");
-        const parent = el?.closest(".form-group");
-        let err = parent?.querySelector(".form-error");
-        if (!err && parent) {
-          err = document.createElement("span");
-          err.className = "form-error";
-          parent.appendChild(err);
-        }
-        if (err) err.textContent = "⚠ Ce champ est obligatoire.";
-      }
-    });
-    if (!valide) {
-      const p = form.querySelector(".invalid");
-      if (p) p.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
+function applyFilters() {
+  let list = [...state.surplusList];
 
-    const qte = parseFloat(document.getElementById("quantite").value) || 0;
-    const unite = document.getElementById("unite").value;
-    const kgNum = qte * (CONVERSION[unite] || 1);
-    const regionVal = document.getElementById("region").value; // région officielle
-    const villeVal =
-      document.getElementById("ville")?.value ||
-      document.getElementById("localisation")?.value ||
-      regionVal;
-    const coords =
-      getCoordsVille(villeVal, regionVal) || getCoordsRegion(regionVal);
+  if (state.activeCategory !== 'tous') {
+    list = list.filter((item) => item.category === state.activeCategory);
+  }
 
-    const s = {
-      id: Date.now(),
-      emoji: "📦",
-      produit: document.getElementById("nom-produit").value,
-      categorie: document.getElementById("categorie").value,
-      quantite: qte + " " + unite,
-      kgNum,
-      prixBrut: parseFloat(document.getElementById("prix").value) || 0,
-      prix:
-        document.getElementById("prix").value +
-        " FCFA/" +
-        document.getElementById("prix-unite").value,
-      region: regionVal, // région officielle séparée
-      ville: villeVal, // ville séparée
-      urgence: document.getElementById("urgence").value,
-      idealPour: document.getElementById("ideal-pour").value,
-      description:
-        document.getElementById("description").value || "Aucune description.",
-      vendeur: document.getElementById("nom-vendeur").value,
-      telephone: document.getElementById("telephone").value,
-      contact: document.getElementById("moyen-contact").value,
-      lat: coords ? coords[0] : null,
-      lng: coords ? coords[1] : null,
-    };
-    try {
-      const ex = JSON.parse(localStorage.getItem("agriflash-surplus") || "[]");
-      ex.push(s);
-      localStorage.setItem("agriflash-surplus", JSON.stringify(ex));
-    } catch (err) {
-      console.error(err);
-    }
-    form.style.display = "none";
-    document.getElementById("success-msg").style.display = "block";
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  if (state.activeRegion && state.activeRegion !== 'toutes') {
+    list = list.filter((item) => item.region === state.activeRegion);
+  }
+
+  if (state.searchQuery) {
+    list = list.filter((item) =>
+      item.product.toLowerCase().includes(state.searchQuery) ||
+      item.region.toLowerCase().includes(state.searchQuery)  ||
+      (item.city || '').toLowerCase().includes(state.searchQuery)
+    );
+  }
+
+  state.filtered = list;
+  renderSurplusGrid();
+}
+
+// ═══════════════════════════════════════════════
+// 7. SURPLUS GRID RENDERER
+// ═══════════════════════════════════════════════
+function renderSurplusGrid() {
+  const grid      = document.getElementById('surplus-grid');
+  const noResults = document.getElementById('no-results');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  if (state.filtered.length === 0) {
+    if (noResults) noResults.style.display = 'block';
+    return;
+  }
+  if (noResults) noResults.style.display = 'none';
+
+  state.filtered.forEach((item) => {
+    const card = createSurplusCard(item);
+    grid.appendChild(card);
   });
 }
 
-/* ---- INIT ---- */
-document.addEventListener("DOMContentLoaded", function () {
-  const pr = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  initDashboard();
-  initTicker();
-  initMap();
-  afficherSurplus(getTousSurplus());
-  afficherDemandes();
-  initMenuMobile();
-  setTimeout(initCharts, 300);
-  document.getElementById("search")?.addEventListener("input", filtrer);
-  document.getElementById("filtre-region")?.addEventListener("change", filtrer);
-  document
-    .getElementById("filtre-urgence")
-    ?.addEventListener("change", filtrer);
-  document
-    .getElementById("filtre-categorie")
-    ?.addEventListener("change", filtrer);
-  document
-    .getElementById("btn-reinit")
-    ?.addEventListener("click", reinitialiserFiltres);
-  document
-    .getElementById("modal-close")
-    ?.addEventListener("click", fermerModal);
-  document.getElementById("modal")?.addEventListener("click", function (e) {
-    if (e.target === this) fermerModal();
-  });
-  document
-    .getElementById("modal-success")
-    ?.addEventListener("click", function (e) {
-      if (e.target === this) fermerModalSuccess();
-    });
-  document.getElementById("ia-close")?.addEventListener("click", () => {
-    document.getElementById("ia-panel").style.display = "none";
-  });
-  initFormulaire();
-  if (!pr) {
-    notifsGenerees = genererNotifs();
-    setTimeout(() => {
-      showNotif();
-      setInterval(showNotif, 5500);
-    }, 2000);
-  }
+function createSurplusCard(item) {
+  const card = document.createElement('article');
+  card.className = 'surplus-card';
+  card.setAttribute('role', 'listitem');
+  card.setAttribute('aria-label', `Surplus : ${item.product} — ${item.region}`);
+
+  const urgencyLabel = { urgent: 'Urgent', critique: 'Critique', normal: 'Disponible' };
+  const urgencyClass = { urgent: 'badge-urgent', critique: 'badge-critique', normal: 'badge-normal' };
+  const timeAgo      = getTimeAgo(item.timestamp);
+
+  const categoryIcons = {
+    légumes:      `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green-500)" stroke-width="1.5"><path d="M2 22c1.25-1.25 2.5-2.5 3.5-4 1-1.5 1.5-3 1.5-5a7 7 0 1 1 14 0c0 2-0.5 3.5-1.5 5S17.25 20.75 16 22"/><path d="M12 22V12"/><path d="m9 9 3 3 3-3"/></svg>`,
+    fruits:       `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--orange-600)" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3c0 0 2 4 2 9s-2 9-2 9"/><path d="M3.6 9h16.8M3.6 15h16.8"/></svg>`,
+    céréales:     `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--orange-700)" stroke-width="1.5"><path d="M12 22V10M12 10c0 0-4-4-4-7a4 4 0 0 1 8 0c0 3-4 7-4 7z"/></svg>`,
+    tubercules:   `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="1.5"><ellipse cx="12" cy="14" rx="6" ry="5"/><path d="M12 9V4M9 6l3-3 3 3"/></svg>`,
+    légumineuses: `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green-500)" stroke-width="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>`,
+    aviculture:   `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--orange-600)" stroke-width="1.5"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0"/></svg>`,
+    transformés:  `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+    default:      `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green-500)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>`,
+  };
+  const icon = categoryIcons[item.category] || categoryIcons.default;
+  const ai = analyzeRisk(item);
+
+  card.innerHTML = `
+    <div class="surplus-card-img">
+      ${item.photo
+        ? `<img src="${item.photo}" alt="Photo de ${escapeHtml(item.product)}" loading="lazy" />`
+        : `<div class="surplus-card-img-placeholder" aria-hidden="true">${icon}</div>`
+      }
+      <span class="surplus-card-badge">
+        <span class="badge ${urgencyClass[item.urgency] || 'badge-normal'}">${urgencyLabel[item.urgency] || 'Disponible'}</span>
+      </span>
+    </div>
+    <div class="surplus-card-body">
+      <h3 class="surplus-card-title">${escapeHtml(item.product)}</h3>
+      <div class="surplus-card-meta">
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${escapeHtml(item.city ? `${item.city}, ` : '')}${escapeHtml(item.region)}
+        </span>
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          ${item.quantity} ${item.unit}
+        </span>
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${timeAgo}
+        </span>
+      </div>
+      <div class="card-ai-mini">
+        <span class="card-ai-mini-label">Analyse AgriFlash</span>
+        <div class="card-ai-mini-bar-wrap">
+          <div class="card-ai-mini-bar" style="width:${ai.risk}%;background:${ai.riskColor}"></div>
+        </div>
+        <span class="card-ai-mini-pct" style="color:${ai.riskColor}">${ai.risk}% risque</span>
+      </div>
+      <div class="surplus-card-price">
+        ${item.price.toLocaleString('fr-TG')} FCFA
+        <small>/ ${item.unit}</small>
+      </div>
+    </div>
+    <div class="surplus-card-footer">
+      <span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        ${escapeHtml(item.seller)}
+      </span>
+      <button class="btn btn-primary btn-sm" onclick="openContactModal(${item.id})" aria-label="Contacter ${escapeHtml(item.seller)}">
+        Contacter
+      </button>
+    </div>
+  `;
+
+  return card;
+}
+
+// ═══════════════════════════════════════════════
+// 8A. ANALYSE IA AGRIFLASH — Logique métier
+//     Conforme au README : risque par urgence
+//     92 % critique / 68 % urgent / 25 % normal
+// ═══════════════════════════════════════════════
+function analyzeRisk(item) {
+  // Risque de perte selon niveau d'urgence (README)
+  const riskMap = { critique: 92, urgent: 68, normal: 25 };
+  const risk    = riskMap[item.urgency] || 25;
+
+  // Recommandation d'action ciblée selon région et urgence
+  const regionRecos = {
+    Maritime:  { critique: 'Contactez immédiatement les restaurateurs et marchés de Lomé.',
+                 urgent:   'Proposez à des cantines ou grossistes de la région Maritime.',
+                 normal:   'Diffusez l\'annonce aux coopératives et transformateurs locaux.' },
+    Plateaux:  { critique: 'Alertez les acheteurs à Kpalimé et Atakpamé sans délai.',
+                 urgent:   'Rapprochez-vous des exportateurs ou transformateurs des Plateaux.',
+                 normal:   'Envisagez une livraison groupée vers Lomé ou Atakpamé.' },
+    Centrale:  { critique: 'Contactez les commerçants de Sokodé en priorité absolue.',
+                 urgent:   'Proposez à des grossistes de la région Centrale ou du Nord.',
+                 normal:   'Organisez une vente directe au marché hebdomadaire de Sokodé.' },
+    Kara:      { critique: 'Mobilisez les acheteurs locaux de Kara ou Pagouda immédiatement.',
+                 urgent:   'Contactez les coopératives agricoles de la région Kara.',
+                 normal:   'Envisagez un transport vers Sokodé ou Lomé pour élargir l\'accès.' },
+    Savanes:   { critique: 'Alertez les acheteurs de Dapaong et Cinkassé sans attendre.',
+                 urgent:   'Proposez à des transformateurs ou exportateurs de la zone Savanes.',
+                 normal:   'Rapprochez-vous des marchés frontaliers du Burkina Faso.' },
+  };
+
+  const reco = (regionRecos[item.region] || {
+    critique: 'Publiez l\'annonce sur tous vos réseaux et contactez des acheteurs locaux.',
+    urgent:   'Cherchez des acheteurs dans un rayon de 50 km de votre exploitation.',
+    normal:   'Planifiez la vente lors du prochain marché hebdomadaire.',
+  })[item.urgency] || 'Diffusez rapidement via WhatsApp à vos contacts acheteurs.';
+
+  // Indicateur de couleur
+  const riskColor = risk >= 80 ? '#dc2626' : risk >= 60 ? '#e47302' : '#0c7e59';
+  const urgLabel  = { critique: 'CRITIQUE', urgent: 'URGENT', normal: 'NORMAL' };
+
+  return { risk, reco, riskColor, urgLabel: urgLabel[item.urgency] || 'NORMAL' };
+}
+
+
+function openContactModal(id) {
+  const item = state.surplusList.find((s) => s.id === id);
+  if (!item) return;
+
+  const modal      = document.getElementById('surplus-modal');
+  const modalBody  = document.getElementById('modal-body');
+  const modalTitle = document.getElementById('modal-title');
+
+  const ai = analyzeRisk(item);
+
+  modalTitle.textContent = `Contacter — ${item.product}`;
+  modalBody.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div style="background:var(--green-50);border-radius:var(--radius);padding:1rem">
+        <div style="font-weight:700;color:var(--green-900);margin-bottom:.25rem">${escapeHtml(item.product)}</div>
+        <div style="font-size:.875rem;color:var(--neutral-500)">${item.quantity} ${item.unit} — ${item.price.toLocaleString('fr-TG')} FCFA/${item.unit}</div>
+        <div style="font-size:.875rem;color:var(--neutral-500)">${escapeHtml(item.city ? `${item.city}, ` : '')}${escapeHtml(item.region)}</div>
+      </div>
+
+      <!-- Analyse IA AgriFlash -->
+      <div style="background:#fff8f0;border:1px solid #fddcb5;border-radius:var(--radius);padding:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e47302" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          <span style="font-size:.75rem;font-weight:700;color:#e47302;text-transform:uppercase;letter-spacing:.05em">Analyse IA AgriFlash</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+          <div style="flex-shrink:0">
+            <div style="font-size:1.75rem;font-weight:800;color:${ai.riskColor};line-height:1">${ai.risk} %</div>
+            <div style="font-size:.65rem;color:var(--neutral-500);margin-top:.15rem">Risque de perte</div>
+          </div>
+          <div style="flex:1;background:var(--neutral-100);border-radius:50px;height:8px;overflow:hidden">
+            <div style="width:${ai.risk}%;height:100%;background:${ai.riskColor};border-radius:50px;transition:width .6s ease"></div>
+          </div>
+          <span style="font-size:.7rem;font-weight:700;color:${ai.riskColor};white-space:nowrap">${ai.urgLabel}</span>
+        </div>
+        <div style="font-size:.8rem;color:var(--neutral-700);line-height:1.55;border-top:1px solid #fddcb5;padding-top:.6rem">
+          <strong style="color:#042f21">Recommandation :</strong> ${escapeHtml(ai.reco)}
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        <div style="font-size:.875rem;font-weight:600;color:var(--neutral-700)">Vendeur : ${escapeHtml(item.seller)}</div>
+        <a href="tel:${escapeHtml(item.phone)}"
+          class="btn btn-primary"
+          style="justify-content:center"
+          aria-label="Appeler ${escapeHtml(item.seller)}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.44 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8 8a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 15 2 2 0 0 1 22 16.92z"/></svg>
+          Appeler : ${escapeHtml(item.phone)}
+        </a>
+        <button type="button"
+          class="btn btn-outline"
+          style="justify-content:center;width:100%"
+          onclick="confirmAndOpenWhatsApp('https://wa.me/${item.phone.replace(/\D/g,'')}?text=${encodeURIComponent('Bonjour, je suis intéressé(e) par votre ' + item.product + ' publié sur AgriFlash.')}')"
+          aria-label="WhatsApp ${escapeHtml(item.seller)}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.44 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8 8a16 16 0 0 0 6 6l.86-.86a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.73 15 2 2 0 0 1 22 16.92z"/></svg>
+          Contacter via WhatsApp
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  const closeBtn = document.getElementById('modal-close');
+  closeBtn.focus();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const modal    = document.getElementById('surplus-modal');
+  const closeBtn = document.getElementById('modal-close');
+  if (!modal) return;
+
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 });
+
+function closeModal() {
+  const modal = document.getElementById('surplus-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ═══════════════════════════════════════════════
+// 9. LEAFLET MAP
+// ═══════════════════════════════════════════════
+
+// Nombre max de surplus de démonstration affichés sur la carte, PAR RÉGION.
+// N'affecte que la carte Leaflet — la grille "Surplus disponibles" reste complète.
+const MAP_MAX_DEMO_PER_REGION = 2;
+
+function initMap() {
+  const mapEl = document.getElementById('map');
+  if (!mapEl || typeof L === 'undefined') return;
+
+  const map = L.map('map', {
+    center: [8.6195, 0.8248],
+    zoom:   7,
+    scrollWheelZoom: false,
+    attributionControl: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18,
+  }).addTo(map);
+
+  const iconGreen = L.divIcon({
+    className: '',
+    html: `<div style="background:#0c7e59;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+    iconSize:   [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor:[0, -30],
+  });
+  const iconOrange = L.divIcon({
+    className: '',
+    html: `<div style="background:#e47302;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+    iconSize:   [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor:[0, -30],
+  });
+
+  // ── Sélection des surplus affichés SUR LA CARTE UNIQUEMENT ──
+  // Les surplus publiés par l'utilisateur (localStorage) sont TOUJOURS affichés, sans limite.
+  // Les surplus de démonstration sont plafonnés à MAP_MAX_DEMO_PER_REGION par région,
+  // en priorisant les niveaux "critique" puis "urgent" pour garder une variété visuelle.
+  const demoIds = new Set(DEMO_SURPLUS.map((d) => d.id));
+  const localItems = state.surplusList.filter((item) => !demoIds.has(item.id));
+  const demoItems  = state.surplusList.filter((item) => demoIds.has(item.id));
+
+  const urgencyRank = { critique: 0, urgent: 1, normal: 2 };
+  const demoByRegion = {};
+  demoItems
+    .slice()
+    .sort((a, b) => (urgencyRank[a.urgency] ?? 3) - (urgencyRank[b.urgency] ?? 3))
+    .forEach((item) => {
+      const key = item.region || '—';
+      if (!demoByRegion[key]) demoByRegion[key] = [];
+      if (demoByRegion[key].length < MAP_MAX_DEMO_PER_REGION) {
+        demoByRegion[key].push(item);
+      }
+    });
+  const demoItemsCapped = Object.values(demoByRegion).flat();
+
+  const mapItems = [...localItems, ...demoItemsCapped];
+
+  // Marqueurs indexés par id pour pouvoir cibler celui qu'on vient de publier
+  const markersById = {};
+
+  mapItems.forEach((item) => {
+    const coords = CITY_COORDS[item.city] || CITY_COORDS[item.region];
+    if (!coords) return;
+
+    const jittered = [
+      coords[0] + (Math.random() - 0.5) * 0.08,
+      coords[1] + (Math.random() - 0.5) * 0.08,
+    ];
+
+    const icon = (item.urgency === 'urgent' || item.urgency === 'critique') ? iconOrange : iconGreen;
+    const urgencyText = { urgent: 'Urgent', critique: 'Critique', normal: 'Disponible' };
+
+    const marker = L.marker(jittered, { icon }).addTo(map);
+    marker.bindPopup(`
+      <div style="font-family:'Inter',sans-serif;min-width:180px">
+        <div style="font-weight:700;font-size:.95rem;color:#042f21;margin-bottom:.3rem">${escapeHtml(item.product)}</div>
+        <div style="font-size:.8rem;color:#374151;margin-bottom:.15rem">
+          <strong>${item.quantity} ${item.unit}</strong> — ${item.price.toLocaleString('fr-TG')} FCFA/${item.unit}
+        </div>
+        <div style="font-size:.75rem;color:#6b7280;margin-bottom:.4rem">
+          ${escapeHtml(item.city ? `${item.city}, ` : '')}${escapeHtml(item.region)}
+        </div>
+        <div style="font-size:.75rem;font-weight:600;color:${item.urgency === 'critique' ? '#dc2626' : item.urgency === 'urgent' ? '#e47302' : '#0c7e59'}">${urgencyText[item.urgency] || 'Disponible'}</div>
+        <button onclick="openContactModal(${item.id})"
+          style="margin-top:.6rem;background:#e47302;color:#fff;border:none;border-radius:20px;padding:.35rem .85rem;font-size:.75rem;font-weight:600;cursor:pointer;width:100%">
+          Contacter le vendeur
+        </button>
+      </div>
+    `, { maxWidth: 220 });
+
+    markersById[item.id] = { marker, latlng: jittered };
+  });
+
+  // ── Auto-focus sur le surplus qu'on vient de publier (mis par add-product.html) ──
+  focusJustPublishedMarker(map, markersById);
+}
+
+function focusJustPublishedMarker(map, markersById) {
+  const justPublishedId = sessionStorage.getItem('agriflash_just_published');
+  if (!justPublishedId) return;
+
+  // Toujours consommer le flag pour ne pas re-zoomer aux prochaines visites
+  sessionStorage.removeItem('agriflash_just_published');
+
+  const entry = markersById[justPublishedId] || markersById[Number(justPublishedId)];
+  if (!entry) return; // marqueur hors champ (ville non répertoriée) : on ne fait rien
+
+  map.once('moveend', () => {
+    entry.marker.openPopup();
+    // Petit effet de mise en évidence pour repérer le pin fraîchement publié
+    // (le style transform:rotate(-45deg) est sur le div interne du divIcon, pas le wrapper)
+    const wrapper = entry.marker.getElement();
+    const pinEl = wrapper ? wrapper.firstElementChild : null;
+    if (pinEl) {
+      pinEl.style.animation = 'agriflash-pin-pulse 1s ease-in-out 2';
+    }
+  });
+
+  map.flyTo(entry.latlng, 13, { duration: 1.1 });
+}
+
+// ═══════════════════════════════════════════════
+// 10. CAROUSEL — "Qui peut acheter ?"
+// ═══════════════════════════════════════════════
+function initCarousel() {
+  const outer   = document.getElementById('carousel-outer');
+  const track   = document.getElementById('carousel-track');
+  const btnPrev = document.getElementById('carousel-prev');
+  const btnNext = document.getElementById('carousel-next');
+  if (!track || !outer) return;
+
+  // ── Réglages : rythme lent et reposé ──────────────────────────
+  const PAUSE_AFTER_MOVE = 2600;   // pause après chaque déplacement (2-3s)
+  const RESUME_AFTER_IDLE = 4000;  // reprise après une période d'inactivité (3-5s)
+
+  let offset = 0;          // décalage courant en px (valeur positive = vers la gauche)
+  let halfWidth = 0;       // largeur de la moitié de piste (les 12 cartes originales)
+  let autoTimer = null;    // setTimeout en cours pour l'autodéfilement
+  let resumeTimer = null;  // setTimeout en cours pour la reprise après inactivité
+  let isInteracting = false;
+
+  function getCardStep() {
+    const card = track.querySelector('.buyer-card');
+    if (!card) return 300;
+    const gap = parseInt(getComputedStyle(track).gap) || 20;
+    return card.offsetWidth + gap;
+  }
+
+  function measure() {
+    halfWidth = track.scrollWidth / 2;
+  }
+
+  function applyOffset(jump = false) {
+    if (jump) track.classList.add('jumping');
+    track.style.transform = `translateX(${-offset}px)`;
+    if (jump) {
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        track.classList.remove('jumping');
+      }));
+    }
+  }
+
+  // ── Déplacement d'une carte (ou plusieurs) ────────────────────
+  function step(dir) {
+    measure();
+    offset += dir * getCardStep();
+
+    // Boucle infinie : repositionnement instantané (invisible) une fois la moitié dépassée
+    if (offset >= halfWidth) {
+      applyOffset();
+      // après la transition visible, on saute discrètement au début de la boucle
+      setTimeout(() => {
+        offset -= halfWidth;
+        applyOffset(true);
+      }, 1450);
+      return;
+    }
+    if (offset < 0) {
+      offset += halfWidth;
+      applyOffset(true);
+      return;
+    }
+    applyOffset();
+  }
+
+  // ── Boucle d'autodéfilement : avance, pause, avance… ──────────
+  function scheduleNextAuto() {
+    clearTimeout(autoTimer);
+    autoTimer = setTimeout(() => {
+      if (!isInteracting) step(1);
+      scheduleNextAuto();
+    }, PAUSE_AFTER_MOVE + 1400); // durée du glissement (≈1.4s, cf. transition CSS) + pause de lecture
+  }
+
+  function stopAuto() {
+    clearTimeout(autoTimer);
+  }
+
+  function pauseAndScheduleResume() {
+    isInteracting = true;
+    stopAuto();
+    clearTimeout(resumeTimer);
+  }
+
+  function scheduleResume(delay = RESUME_AFTER_IDLE) {
+    clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(() => {
+      isInteracting = false;
+      scheduleNextAuto();
+    }, delay);
+  }
+
+  // ── Survol : pause immédiate, reprise après le départ de la souris ─
+  outer.addEventListener('mouseenter', pauseAndScheduleResume);
+  outer.addEventListener('mouseleave', () => scheduleResume(RESUME_AFTER_IDLE));
+
+  // ── Flèches : déplacement manuel + pause/reprise différée ─────
+  if (btnNext) btnNext.addEventListener('click', () => {
+    pauseAndScheduleResume();
+    step(1);
+    scheduleResume(RESUME_AFTER_IDLE);
+  });
+  if (btnPrev) btnPrev.addEventListener('click', () => {
+    pauseAndScheduleResume();
+    step(-1);
+    scheduleResume(RESUME_AFTER_IDLE);
+  });
+
+  // ── Swipe tactile ──────────────────────────────────────────────
+  let touchStartX = 0;
+  outer.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    pauseAndScheduleResume();
+  }, { passive: true });
+
+  outer.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) step(diff > 0 ? 1 : -1);
+    scheduleResume(RESUME_AFTER_IDLE);
+  }, { passive: true });
+
+  // ── Glisser-déposer (souris) ───────────────────────────────────
+  let isDragging = false;
+  let dragStartX = 0;
+
+  outer.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragStartX = e.clientX;
+    pauseAndScheduleResume();
+    outer.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mouseup', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    outer.style.cursor = '';
+    const diff = dragStartX - e.clientX;
+    if (Math.abs(diff) > 40) step(diff > 0 ? 1 : -1);
+    scheduleResume(RESUME_AFTER_IDLE);
+  });
+
+  // ── Accessibilité : réduire les animations ────────────────────
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return; // pas d'autodéfilement, les flèches/swipe restent disponibles
+  }
+
+  // ── Démarrage ──────────────────────────────────────────────────
+  measure();
+  window.addEventListener('resize', measure);
+  scheduleNextAuto();
+}
+
+// ═══════════════════════════════════════════════
+// 11. ANIMATED COUNTERS
+// ═══════════════════════════════════════════════
+function animateCounters() {
+  const targets = document.querySelectorAll('[id^="stat-"]');
+  if (!targets.length) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el  = entry.target;
+      // Cible dynamique (dashboard) si disponible, sinon on lit la valeur écrite en dur
+      const end = el.dataset.target !== undefined
+        ? parseInt(el.dataset.target, 10)
+        : parseInt(el.textContent.replace(/\D/g, ''), 10);
+      if (isNaN(end)) return;
+      animateNumber(el, 0, end, 1200, el.dataset.suffix || '');
+      observer.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+
+  targets.forEach((t) => observer.observe(t));
+}
+
+function animateNumber(el, start, end, duration, suffix = '') {
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed  = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease     = 1 - Math.pow(1 - progress, 3);
+    const value    = Math.round(start + (end - start) * ease);
+    el.textContent = value.toLocaleString('fr-TG') + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// ═══════════════════════════════════════════════
+// 13. TICKER DYNAMIQUE — bandeau d'information
+// ═══════════════════════════════════════════════
+function initTicker() {
+  const track = document.getElementById('ticker-track');
+  const bar   = document.getElementById('ticker-bar');
+  if (!track || !bar) return;
+
+  // Construire les items uniques Produit + Région (pas de doublons)
+  const seen  = new Set();
+  const items = [];
+  state.surplusList.forEach((item) => {
+    const key = `${item.product}__${item.region}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    items.push(item);
+  });
+
+  // Trier par urgence pour donner la priorité aux infos critiques
+  const order = { critique: 0, urgent: 1, normal: 2 };
+  items.sort((a, b) => (order[a.urgency] ?? 3) - (order[b.urgency] ?? 3));
+
+  // Le bandeau reste en Deep Forest Green ; l'orange ne sert que de pastille
+  // d'accent sur les entrées critiques/urgentes (cf. CSS .ticker-item--*).
+  const buildEntry = (item) => {
+    return `<span class="ticker-item ticker-item--${item.urgency}">
+      <span class="ticker-dot" aria-hidden="true">●</span>
+      ${escapeHtml(item.product)} — ${item.quantity} ${item.unit} disponibles à ${escapeHtml(item.city ? item.city + ', ' : '')}${escapeHtml(item.region)} — ${item.price.toLocaleString('fr-TG')} FCFA/${item.unit}
+    </span>`;
+  };
+
+  const html = items.map(buildEntry).join('');
+  // Dupliquer pour un défilement infini fluide
+  track.innerHTML = html + html;
+
+  // ── Vitesse constante et lente, quel que soit le nombre d'annonces ──
+  // On calcule la durée à partir de la largeur réelle du contenu plutôt que
+  // de fixer une durée unique (qui ferait défiler trop vite les longues listes).
+  const PIXELS_PER_SECOND = 14; // vitesse plus lente et fluide, façon bandeau d'actualités
+  const MIN_DURATION = 45;      // secondes
+  const MAX_DURATION = 130;     // secondes
+
+  function applyTickerSpeed() {
+    const halfWidth = track.scrollWidth / 2;
+    let duration = halfWidth / PIXELS_PER_SECOND;
+    duration = Math.max(MIN_DURATION, Math.min(MAX_DURATION, duration));
+    track.style.animation = `ticker-scroll ${duration}s linear infinite`;
+  }
+
+  // Attendre que les polices/images soient en place pour une mesure fiable
+  requestAnimationFrame(() => requestAnimationFrame(applyTickerSpeed));
+  window.addEventListener('resize', applyTickerSpeed);
+
+  // Pause au survol, reprise après quelques secondes
+  let resumeTimer = null;
+  bar.addEventListener('mouseenter', () => {
+    track.classList.add('paused');
+    if (resumeTimer) clearTimeout(resumeTimer);
+  });
+  bar.addEventListener('mouseleave', () => {
+    if (resumeTimer) clearTimeout(resumeTimer);
+    resumeTimer = setTimeout(() => track.classList.remove('paused'), 1200);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// 15. CONFIRMATION DE MISE EN RELATION + WHATSAPP
+// ═══════════════════════════════════════════════
+function confirmAndOpenWhatsApp(waUrl) {
+  const modal = document.getElementById('success-modal');
+  if (!modal) { window.open(waUrl, '_blank', 'noopener'); return; }
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  setTimeout(() => {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+    window.open(waUrl, '_blank', 'noopener');
+  }, 1600);
+}
+
+// ═══════════════════════════════════════════════
+// 16. GRAPHIQUES D'IMPACT — Chart.js
+// ═══════════════════════════════════════════════
+function initCharts() {
+  if (typeof Chart === 'undefined') return;
+
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = '#6b7280';
+
+  const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
+
+  // ── 1. Pertes évitées vs pertes habituelles (6 mois) ──
+  const elPertes = document.getElementById('chart-pertes');
+  if (elPertes) {
+    new Chart(elPertes, {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [
+          { label: 'Pertes habituelles (sans AgriFlash)', data: [62, 58, 65, 60, 57, 63], backgroundColor: '#fddcb5' },
+          { label: 'Pertes avec AgriFlash',                data: [40, 33, 30, 25, 20, 16], backgroundColor: '#0c7e59' },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true, ticks: { callback: (v) => v + '%' } } },
+      },
+    });
+  }
+
+  // ── 2. Connexions producteur–acheteur par mois ──
+  const elConn = document.getElementById('chart-connections');
+  if (elConn) {
+    new Chart(elConn, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Connexions réalisées',
+          data: [120, 180, 240, 310, 410, 520],
+          borderColor: '#e47302',
+          backgroundColor: 'rgba(228,115,2,.15)',
+          fill: true,
+          tension: .35,
+          pointBackgroundColor: '#e47302',
+        }],
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } },
+    });
+  }
+
+  // ── 3. Kilogrammes sauvés sur 7 jours (calculé depuis les données réelles) ──
+  const elKg = document.getElementById('chart-kgsaved');
+  if (elKg) {
+    const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    // Répartit le volume réel total du catalogue sur 7 jours de façon pseudo-réaliste
+    const totalKg = state.surplusList.reduce((sum, i) => sum + (i.unit === 'kg' ? i.quantity : 0), 0);
+    const weights = [0.11, 0.13, 0.12, 0.15, 0.18, 0.17, 0.14];
+    const kgPerDay = weights.map((w) => Math.round(totalKg * w / 10));
+    new Chart(elKg, {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [{ label: 'Kg sauvés', data: kgPerDay, backgroundColor: '#10a877', borderRadius: 6 }],
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } },
+    });
+  }
+
+  // ── 4. Répartition des surplus par catégorie (camembert) ──
+  const elCat = document.getElementById('chart-categories');
+  if (elCat) {
+    const counts = {};
+    state.surplusList.forEach((i) => { counts[i.category] = (counts[i.category] || 0) + 1; });
+    const labels = Object.keys(counts);
+    const data   = Object.values(counts);
+    const palette = ['#0c7e59', '#e47302', '#10a877', '#b85d00', '#84dfc6', '#fde8c4', '#042f21'];
+    new Chart(elCat, {
+      type: 'pie',
+      data: { labels, datasets: [{ data, backgroundColor: palette }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } },
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════
+// 12. UTILITY
+// ═══════════════════════════════════════════════
+function debounce(fn, wait) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+function getTimeAgo(isoStr) {
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const min  = Math.floor(diff / 60000);
+  if (min < 1)   return "A l'instant";
+  if (min < 60)  return `Il y a ${min} min`;
+  const hr = Math.floor(min / 60);
+  if (hr  < 24)  return `Il y a ${hr} h`;
+  const d  = Math.floor(hr  / 24);
+  return `Il y a ${d} j`;
+}
+
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const icons = {
+    success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    error:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+  };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.setAttribute('role', 'alert');
+  t.innerHTML = `${icons[type] || icons.success}<span class="toast-msg">${msg}</span>`;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 4500);
+}
